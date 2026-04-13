@@ -1,0 +1,143 @@
+{
+  "info": {
+    "_postman_id": "d8f7a2d2-71d4-4f5b-9a0f-5d0a2f7c1111",
+    "name": "Work Orders Moto API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@taller.com\",\n  \"password\": \"Admin12345!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "pm.environment.set('token', data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Juan Perez\",\n  \"phone\": \"3009999999\",\n  \"email\": \"juan@example.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/clients", "host": ["{{baseUrl}}"], "path": ["clients"] }
+          }
+        },
+        {
+          "name": "List Clients",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/clients?search=", "host": ["{{baseUrl}}"], "path": ["clients"], "query": [{ "key": "search", "value": "" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bikes",
+      "item": [
+        {
+          "name": "Create Bike",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"plate\": \"ZZZ123\",\n  \"brand\": \"Yamaha\",\n  \"model\": \"FZ 250\",\n  \"cylinder\": 250,\n  \"clientId\": 1\n}" },
+            "url": { "raw": "{{baseUrl}}/bikes", "host": ["{{baseUrl}}"], "path": ["bikes"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Work Orders",
+      "item": [
+        {
+          "name": "Create Work Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"motoId\": 1,\n  \"faultDescription\": \"No enciende\"\n}" },
+            "url": { "raw": "{{baseUrl}}/work-orders", "host": ["{{baseUrl}}"], "path": ["work-orders"] }
+          }
+        },
+        {
+          "name": "List Work Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/work-orders?status=&plate=&page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["work-orders"],
+              "query": [
+                { "key": "status", "value": "" },
+                { "key": "plate", "value": "" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/work-orders/1/history?page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["work-orders", "1", "history"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
