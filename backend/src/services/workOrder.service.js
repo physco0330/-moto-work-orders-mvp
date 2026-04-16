@@ -56,6 +56,10 @@ const createWorkOrder = async (payload, user) => {
         faultDescription: payload.faultDescription,
         status: STATUS.RECIBIDA,
         total: 0,
+        serviceType: payload.serviceType || null,
+        pilotName: payload.pilotName || null,
+        hoursRegistered: payload.hoursRegistered || 0,
+        hoursUsed: payload.hoursUsed || 0,
       },
       { transaction }
     );
@@ -366,6 +370,25 @@ const getAllowedStatusTransitions = async (id, role) => {
   };
 };
 
+const updateWorkOrder = async (id, payload) => {
+  const workOrder = await WorkOrder.findByPk(id);
+  if (!workOrder) {
+    const error = new Error('Orden no encontrada');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (payload.serviceType !== undefined) workOrder.serviceType = payload.serviceType;
+  if (payload.pilotName !== undefined) workOrder.pilotName = payload.pilotName;
+  if (payload.hoursRegistered !== undefined) workOrder.hoursRegistered = payload.hoursRegistered;
+  if (payload.hoursUsed !== undefined) workOrder.hoursUsed = payload.hoursUsed;
+  if (payload.faultDescription !== undefined) workOrder.faultDescription = payload.faultDescription;
+
+  await workOrder.save();
+
+  return WorkOrder.findByPk(id, { include: buildWorkOrderInclude() });
+};
+
 module.exports = {
   createWorkOrder,
   listWorkOrders,
@@ -376,4 +399,5 @@ module.exports = {
   getWorkOrderHistory,
   getWorkOrderHistoryPaginated,
   getAllowedStatusTransitions,
+  updateWorkOrder,
 };

@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-// Orden principal que agrupa estado, items e historial.
 const WorkOrder = sequelize.define(
   'WorkOrder',
   {
@@ -15,6 +14,10 @@ const WorkOrder = sequelize.define(
       defaultValue: 'RECIBIDA',
     },
     total: { type: DataTypes.DECIMAL(12, 2), allowNull: false, defaultValue: 0 },
+    serviceType: { type: DataTypes.STRING(100), allowNull: true, field: 'service_type' },
+    pilotName: { type: DataTypes.STRING(100), allowNull: true, field: 'pilot_name' },
+    hoursRegistered: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0, field: 'hours_registered' },
+    hoursUsed: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0, field: 'hours_used' },
   },
   {
     tableName: 'work_orders',

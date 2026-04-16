@@ -66,6 +66,15 @@ const getAllowedStatusTransitions = asyncHandler(async (req, res) => {
   res.status(200).json(result);
 });
 
+const updateWorkOrder = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+  const body = req.body;
+  if (body.hoursRegistered) body.hoursRegistered = parseFloat(body.hoursRegistered);
+  if (body.hoursUsed) body.hoursUsed = parseFloat(body.hoursUsed);
+  const workOrder = await workOrderService.updateWorkOrder(id, body);
+  res.status(200).json(workOrder);
+});
+
 module.exports = {
   createWorkOrder,
   listWorkOrders,

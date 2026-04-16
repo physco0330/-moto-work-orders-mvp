@@ -20,7 +20,7 @@ function Layout() {
       
       <aside className={`sidebar-fixed ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <img src="/mecanica/logo-pavas.jpeg" alt="Pavas" className="logo-img" />
+          <img src="/logo-skm3.jpg" alt="Pavas" className="logo-img" />
         </div>
         
         <nav className="sidebar-menu">

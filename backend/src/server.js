@@ -50,6 +50,45 @@ const start = async () => {
         } else {
           console.log('ChecklistItems table already exists');
         }
+
+        const columnsResult = await sequelize.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name = 'work_orders' AND table_schema = 'public';
+        `, { type: sequelize.QueryTypes.SELECT });
+
+        const columns = columnsResult.map(c => c.column_name);
+        
+        if (!columns.includes('service_type')) {
+          console.log('Adding new columns to work_orders...');
+          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN service_type VARCHAR(100);`);
+          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN pilot_name VARCHAR(100);`);
+          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_registered DECIMAL(10,2) DEFAULT 0;`);
+          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_used DECIMAL(10,2) DEFAULT 0;`);
+          console.log('New columns added to work_orders');
+        }
+
+        const checklistTable = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public'
+            AND table_name = 'WorkOrderChecklistItems'
+          );
+        `, { type: sequelize.QueryTypes.SELECT });
+
+        if (!checklistTable[0].exists) {
+          console.log('Creating WorkOrderChecklistItems table...');
+          await sequelize.query(`
+            CREATE TABLE "WorkOrderChecklistItems" (
+              id SERIAL PRIMARY KEY,
+              work_order_id INTEGER NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
+              checklist_item_id INTEGER NOT NULL REFERENCES "ChecklistItems"(id) ON DELETE CASCADE,
+              checked BOOLEAN DEFAULT false,
+              "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              "updatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+          `);
+          console.log('WorkOrderChecklistItems table created');
+        }
       } catch (e) {
         console.log('Migrations error:', e.message);
       }
