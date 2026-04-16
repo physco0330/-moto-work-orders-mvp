@@ -10,7 +10,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://benevolent-salamander-423f7a.netlify.app'],
+  origin: true,
   credentials: true,
 }));
 app.use(express.json());
