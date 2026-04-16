@@ -58,7 +58,6 @@ function WorkOrdersPage() {
           <h1 className="page-title">Ordenes de trabajo</h1>
           <p className="page-description">Consulta, filtra y administra las ordenes del taller con una vista mas limpia y enfocada.</p>
         </div>
-        <Link className="button" to="/work-orders/new">Nueva orden</Link>
       </div>
 
       <div className="summary-grid">

@@ -401,13 +401,17 @@ tbody tr:last-child td { border-bottom: 0; }
   
   .topbar { flex-wrap: wrap; gap: 10px; padding: 12px; }
   .nav a, .user-box button { padding: 10px 12px; font-size: 13px; }
-  .nav a span, .user-box .chip, .user-box .badge { display: none; }
-  .nav a::before { font-size: 18px; }
+  .desktop-only { display: none; }
+  .nav a[data-icon]::before { font-size: 18px; content: attr(data-icon); display: block; }
+  .nav a[data-icon] { display: flex; justify-content: center; }
   .user-box { gap: 4px; }
-  .user-box button::before { font-size: 16px; }
+  .user-box button[data-icon]::before { font-size: 16px; content: attr(data-icon); display: block; }
+  .user-box button[data-icon] { display: flex; justify-content: center; padding: 10px 12px; }
+  .user-box .chip, .user-box .badge { display: none; }
   
   .page-hero { flex-direction: column; align-items: stretch; }
-  .page-hero .button { width: 100%; text-align: center; }
   
   .pagination button { padding: 6px 10px; font-size: 12px; min-width: 36px; }
+  
+  .nav a[data-icon]::before { font-size: 20px; }
 }

@@ -17,9 +17,9 @@ function Layout() {
           </div>
         </div>
         <nav className="nav">
-          <NavLink to="/work-orders" data-icon="📋">Ordenes</NavLink>
-          <NavLink to="/work-orders/new" data-icon="➕">Nueva orden</NavLink>
-          {user?.role === 'ADMIN' && <NavLink to="/users" data-icon="👤">Usuarios</NavLink>}
+          <NavLink to="/work-orders" data-icon="📋"><span className="desktop-only">Ordenes</span></NavLink>
+          <NavLink to="/work-orders/new" data-icon="➕"><span className="desktop-only">Nueva orden</span></NavLink>
+          {user?.role === 'ADMIN' && <NavLink to="/users" data-icon="👤"><span className="desktop-only">Usuarios</span></NavLink>}
         </nav>
         <div className="user-box">
           <span className="chip">{user?.name}</span>
