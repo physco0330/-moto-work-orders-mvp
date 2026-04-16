@@ -17,14 +17,14 @@ function Layout() {
           </div>
         </div>
         <nav className="nav">
-          <NavLink to="/work-orders">Ordenes</NavLink>
-          <NavLink to="/work-orders/new">Nueva orden</NavLink>
-          {user?.role === 'ADMIN' && <NavLink to="/users">Usuarios</NavLink>}
+          <NavLink to="/work-orders" data-icon="📋">Ordenes</NavLink>
+          <NavLink to="/work-orders/new" data-icon="➕">Nueva orden</NavLink>
+          {user?.role === 'ADMIN' && <NavLink to="/users" data-icon="👤">Usuarios</NavLink>}
         </nav>
         <div className="user-box">
           <span className="chip">{user?.name}</span>
           <span className="badge">{user?.role}</span>
-          <button className="ghost" onClick={logout}>Salir</button>
+          <button className="ghost" onClick={logout} data-icon="🚪">Salir</button>
         </div>
       </header>
       <main className="content">

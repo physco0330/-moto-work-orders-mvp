@@ -47,8 +47,8 @@ function WorkOrdersPage() {
   const stats = {
     total: pagination.total || 0,
     recibidas: orders.filter((order) => order.status === 'RECIBIDA').length,
-    enProceso: orders.filter((order) => ['DIAGNOSTICO', 'EN_PROCESO'].includes(order.status)).length,
-    listas: orders.filter((order) => ['LISTA', 'ENTREGADA'].includes(order.status)).length,
+    enProceso: orders.filter((order) => order.status === 'EN_PROCESO' || order.status === 'DIAGNOSTICO').length,
+    listas: orders.filter((order) => order.status === 'LISTA' || order.status === 'ENTREGADA').length,
   };
 
   return (

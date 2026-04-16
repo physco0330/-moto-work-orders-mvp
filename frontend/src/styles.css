@@ -257,9 +257,14 @@ tbody tr:last-child td { border-bottom: 0; }
 .pagination {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   margin-top: 16px;
+}
+.pagination button {
+  padding: 8px 12px;
+  font-size: 13px;
+  min-width: 40px;
 }
 .stack { display: grid; gap: 10px; }
 .item-row, .timeline-item, .user-row {
@@ -387,10 +392,22 @@ tbody tr:last-child td { border-bottom: 0; }
   .page-hero, .detail-hero, .section-title, .topbar { flex-direction: column; align-items: stretch; }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .content { padding: 16px; }
   .grid.two, .grid.three, .summary-grid { grid-template-columns: 1fr; }
   .auth-screen { padding: 12px; }
   .auth-visual, .auth-panel { border-radius: 22px; }
   .auth-points { grid-template-columns: 1fr; }
+  
+  .topbar { flex-wrap: wrap; gap: 10px; padding: 12px; }
+  .nav a, .user-box button { padding: 10px 12px; font-size: 13px; }
+  .nav a span, .user-box .chip, .user-box .badge { display: none; }
+  .nav a::before { font-size: 18px; }
+  .user-box { gap: 4px; }
+  .user-box button::before { font-size: 16px; }
+  
+  .page-hero { flex-direction: column; align-items: stretch; }
+  .page-hero .button { width: 100%; text-align: center; }
+  
+  .pagination button { padding: 6px 10px; font-size: 12px; min-width: 36px; }
 }
