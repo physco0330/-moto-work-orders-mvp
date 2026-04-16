@@ -125,13 +125,25 @@ const listWorkOrders = async ({ status, plate, page = 1, pageSize = 10 }) => {
     limit,
   });
 
+// Contadores reales desde la base de datos
+  const totalCount = await WorkOrder.count();
+  const recCount = await WorkOrder.count({ where: { status: 'RECIBIDA' } });
+  const procCount = await WorkOrder.count({ where: { status: { [Op.in]: ['DIAGNOSTICO', 'EN_PROCESO'] } } });
+  const lisCount = await WorkOrder.count({ where: { status: { [Op.in]: ['LISTA', 'ENTREGADA'] } } });
+
   return {
     data: rows,
     pagination: {
       page: Number(page),
       pageSize: Number(pageSize),
-      total: count,
-      totalPages: Math.ceil(count / Number(pageSize)),
+      total: totalCount,
+      totalPages: Math.ceil(totalCount / Number(pageSize)),
+    },
+stats: {
+      total: totalCount,
+      recibidas: recCount,
+      enProceso: procCount,
+      listas: lisCount,
     },
   };
 };

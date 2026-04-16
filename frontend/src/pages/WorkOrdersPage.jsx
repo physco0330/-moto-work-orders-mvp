@@ -23,7 +23,7 @@ function WorkOrdersPage() {
       try {
         const { data } = await api.get('/work-orders', { params: { status, plate, page, pageSize: 10 } });
         setOrders(data.data);
-        setPagination(data.pagination);
+        setPagination({ ...data.pagination, stats: data.stats });
       } catch (e) {
         setError(e.response?.data?.message || 'Error cargando ordenes');
       } finally {
@@ -33,6 +33,13 @@ function WorkOrdersPage() {
 
     load();
   }, [status, plate, page]);
+
+  const stats = {
+    total: pagination.stats?.total || 0,
+    recibidas: pagination.stats?.recibidas || 0,
+    enProceso: pagination.stats?.enProceso || 0,
+    listas: pagination.stats?.listas || 0,
+  };
 
   const updateFilters = (next) => {
     const params = new URLSearchParams(searchParams);
@@ -45,10 +52,10 @@ function WorkOrdersPage() {
   };
 
   const stats = {
-    total: pagination.total || 0,
-    recibidas: orders.filter((order) => order.status === 'RECIBIDA').length,
-    enProceso: orders.filter((order) => order.status === 'EN_PROCESO' || order.status === 'DIAGNOSTICO').length,
-    listas: orders.filter((order) => order.status === 'LISTA' || order.status === 'ENTREGADA').length,
+    total: data.stats?.total || pagination.total || 0,
+    recibidas: data.stats?.recibidas || 0,
+    enProceso: data.stats?.enProceso || 0,
+    listas: data.stats?.listas || 0,
   };
 
   return (
