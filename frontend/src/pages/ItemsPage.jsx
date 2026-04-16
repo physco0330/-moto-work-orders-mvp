@@ -21,6 +21,15 @@ function ItemsPage() {
     load();
   }, []);
 
+  const handleToggleActive = async (item) => {
+    try {
+      await api.put(`/checklist-items/${item.id}`, { active: !item.active });
+      setItems(items.map(i => i.id === item.id ? { ...i, active: !i.active } : i));
+    } catch (e) {
+      alert(e.response?.data?.message || 'Error actualizando');
+    }
+  };
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -51,7 +60,11 @@ function ItemsPage() {
                   <td>{item.name}</td>
                   <td><span className="badge">{item.active ? 'Activo' : 'Inactivo'}</span></td>
                   <td>
-                    <button className="ghost small">Editar</button>
+                    <div className="action-buttons">
+                      <button className="ghost small" onClick={() => handleToggleActive(item)}>
+                        {item.active ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -21,6 +21,16 @@ function PilotosPage() {
     load();
   }, []);
 
+  const handleDelete = async (id) => {
+    if (!confirm('¿Eliminar piloto?')) return;
+    try {
+      await api.delete(`/clients/${id}`);
+      setPilotos(pilotos.filter(p => p.id !== id));
+    } catch (e) {
+      alert(e.response?.data?.message || 'Error eliminando');
+    }
+  };
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -43,6 +53,7 @@ function PilotosPage() {
                 <th>Teléfono</th>
                 <th>Email</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -53,10 +64,16 @@ function PilotosPage() {
                   <td>{p.phone}</td>
                   <td>{p.email || '-'}</td>
                   <td><span className="badge">Activo</span></td>
+                  <td>
+                    <div className="action-buttons">
+                      <button className="ghost small">Editar</button>
+                      <button className="danger small" onClick={() => handleDelete(p.id)}>Eliminar</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {!pilotos.length && (
-                <tr><td colSpan="5" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay pilotos registrados</td></tr>
+                <tr><td colSpan="6" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay pilotos registrados</td></tr>
               )}
             </tbody>
           </table>

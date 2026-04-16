@@ -44,6 +44,7 @@ function MotocicletasPage() {
                 <th>Marca</th>
                 <th>Modelo</th>
                 <th>Cliente</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -54,6 +55,12 @@ function MotocicletasPage() {
                   <td>{m.brand}</td>
                   <td>{m.model}</td>
                   <td>{m.client?.name || '-'}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button className="ghost small">Editar</button>
+                      <button className="danger small">Eliminar</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {!motos.length && (

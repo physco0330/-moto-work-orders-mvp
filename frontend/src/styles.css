@@ -565,6 +565,8 @@ tbody tr:last-child td { border-bottom: 0; }
 
 .action-icon { font-size: 18px; }
 
+.action-buttons { display: flex; gap: 6px; }
+
 .activity-list { display: flex; flex-direction: column; }
 .activity-item {
   display: flex;
