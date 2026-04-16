@@ -2,16 +2,17 @@ const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 // Conexion central de Sequelize para la app.
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 3306,
-    dialect: process.env.DB_DIALECT || 'mysql',
-    logging: false,
-  }
-);
+// Railway provee DATABASE_URL para conexiones Postgres.
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  protocol: 'postgres',
+  logging: false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
+});
 
 module.exports = sequelize;
