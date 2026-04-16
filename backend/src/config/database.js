@@ -6,36 +6,23 @@ let sequelize;
 if (process.env.DATABASE_URL) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
-    protocol: 'postgres',
     logging: false,
     dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
+      ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
     },
   });
 } else {
-  const dbName = process.env.DB_NAME || process.env.JAWSDB_NAME;
-  const dbUser = process.env.DB_USER || process.env.JAWSDB_USERNAME;
-  const dbPassword = process.env.DB_PASSWORD || process.env.JAWSDB_PASSWORD;
-  const dbHost = process.env.DB_HOST || process.env.JAWSDB_HOST;
-  const dbPort = process.env.DB_PORT || 5432;
-
   sequelize = new Sequelize(
-    dbName,
-    dbUser,
-    dbPassword,
+    process.env.DB_NAME || process.env.JAWSDB_NAME,
+    process.env.DB_USER || process.env.JAWSDB_USERNAME,
+    process.env.DB_PASSWORD || process.env.JAWSDB_PASSWORD,
     {
-      host: dbHost,
-      port: dbPort,
+      host: process.env.DB_HOST || process.env.JAWSDB_HOST,
+      port: process.env.DB_PORT || 5432,
       dialect: 'postgres',
       logging: false,
       dialectOptions: {
-        ssl: {
-          require: true,
-          rejectUnauthorized: false,
-        },
+        ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
       },
     }
   );

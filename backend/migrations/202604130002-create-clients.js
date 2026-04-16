@@ -7,8 +7,8 @@ module.exports = {
       name: { type: Sequelize.STRING(120), allowNull: false },
       phone: { type: Sequelize.STRING(40), allowNull: false },
       email: { type: Sequelize.STRING(180), allowNull: true },
-      created_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },
-      updated_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') },
+      created_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('NOW()') },
+      updated_at: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('NOW()') },
     });
   },
   async down(queryInterface) {
