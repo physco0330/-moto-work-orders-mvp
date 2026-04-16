@@ -34,8 +34,8 @@ function WorkOrdersPage() {
     load();
   }, [status, plate, page]);
 
-  const stats = {
-    total: pagination.stats?.total || 0,
+const stats = {
+    total: pagination.stats?.total || pagination.total || 0,
     recibidas: pagination.stats?.recibidas || 0,
     enProceso: pagination.stats?.enProceso || 0,
     listas: pagination.stats?.listas || 0,
@@ -49,13 +49,6 @@ function WorkOrdersPage() {
     });
     if (!next.page) params.delete('page');
     setSearchParams(params);
-  };
-
-  const stats = {
-    total: data.stats?.total || pagination.total || 0,
-    recibidas: data.stats?.recibidas || 0,
-    enProceso: data.stats?.enProceso || 0,
-    listas: data.stats?.listas || 0,
   };
 
   return (
