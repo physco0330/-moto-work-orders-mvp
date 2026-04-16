@@ -5,7 +5,7 @@ const statusValues = ['RECIBIDA', 'DIAGNOSTICO', 'EN_PROCESO', 'LISTA', 'ENTREGA
 const workOrderCreateSchema = Joi.object({
   motoId: Joi.number().integer().positive().optional(),
   entryDate: Joi.date().optional(),
-  faultDescription: Joi.string().min(3).required(),
+  faultDescription: Joi.string().min(1).required(),
   client: Joi.object({
     name: Joi.string().min(2).max(120).required(),
     phone: Joi.string().min(5).max(40).required(),
@@ -23,23 +23,18 @@ const workOrderCreateSchema = Joi.object({
     count: Joi.number().integer().min(1).required(),
     unitValue: Joi.number().min(0).required(),
   })).optional(),
-}).custom((value, helpers) => {
-  if (!value.motoId && (!value.client || !value.bike)) {
-    return helpers.message('"motoId" o "client" + "bike" son requeridos');
-  }
-  return value;
-}, 'Moto or client-bike rule');
+});
 
 const workOrderStatusSchema = Joi.object({
-  toStatus: Joi.string().valid(...statusValues).required(),
+  toStatus: Joi.string().required(),
   note: Joi.string().max(255).optional().allow('', null),
 });
 
 const workOrderItemSchema = Joi.object({
-  type: Joi.string().valid('MANO_OBRA', 'REPUESTO').required(),
-  description: Joi.string().min(1).max(255).required(),
-  count: Joi.number().integer().min(1).required(),
-  unitValue: Joi.number().min(0).required(),
+  type: Joi.string().required(),
+  description: Joi.string().required(),
+  count: Joi.number().required(),
+  unitValue: Joi.number().required(),
 });
 
 const workOrderIdParamSchema = Joi.object({
@@ -58,9 +53,9 @@ const workOrderListQuerySchema = Joi.object({
 });
 
 const workOrderHistoryQuerySchema = Joi.object({
-  page: Joi.number().integer().min(1).optional().default(1),
-  pageSize: Joi.number().integer().min(1).max(100).optional().default(10),
-  userId: Joi.number().integer().positive().optional(),
+  page: Joi.number().optional().default(1),
+  pageSize: Joi.number().optional().default(10),
+  userId: Joi.number().optional(),
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),
 });
