@@ -931,12 +931,13 @@ tbody tr:last-child td { border-bottom: 0; }
   border-radius: 12px;
   padding: 20px 24px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
   border: 1px solid #e2e8f0;
   transition: all 0.25s ease;
   cursor: pointer;
+  text-align: center;
 }
 
 .stat-card-new:hover {
@@ -945,57 +946,30 @@ tbody tr:last-child td { border-bottom: 0; }
   border-color: #cbd5e1;
 }
 
-.stat-card-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-card-icon img {
-  width: 28px;
-  height: 28px;
-}
-
-.stat-card-icon svg {
-  width: 26px;
-  height: 26px;
-}
-
-.stat-red .stat-card-icon { background: #fef2f2; }
-.stat-orange .stat-card-icon { background: #fff7ed; }
-.stat-green .stat-card-icon { background: #f0fdf4; }
-.stat-blue .stat-card-icon { background: #eff6ff; }
-
-.stat-card-content {
-  display: flex;
-  flex-direction: column;
-}
-
 .stat-card-text {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .stat-card-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #64748b;
 }
 
 .stat-card-value {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: #0f172a;
   line-height: 1;
 }
 
-.stat-red { border-left: none; }
-.stat-orange { border-left: none; }
-.stat-green { border-left: none; }
-.stat-blue { border-left: none; }
+.stat-red { background: #fef2f2; border-color: #fecaca; }
+.stat-orange { background: #fff7ed; border-color: #fed7aa; }
+.stat-green { background: #f0fdf4; border-color: #bbf7d0; }
+.stat-blue { background: #eff6ff; border-color: #bfdbfe; }
 
 /* Dashboard Grid */
 .dashboard-grid {

@@ -85,38 +85,26 @@ function DashboardPage() {
       <div className="stats-grid-new">
         <Link to="/work-orders/pendientes" className="stat-card-new stat-red">
           <div className="stat-card-text">
-            <span className="stat-card-title">Servicios Pendientes</span>
             <span className="stat-card-value">{stats.pending}</span>
-          </div>
-          <div className="stat-card-icon">
-            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Pendientes" width="28" height="28" />
+            <span className="stat-card-title">Servicios Pendientes</span>
           </div>
         </Link>
         <Link to="/work-orders/proceso" className="stat-card-new stat-orange">
           <div className="stat-card-text">
-            <span className="stat-card-title">Servicios en Proceso</span>
             <span className="stat-card-value">{stats.inProgress}</span>
-          </div>
-          <div className="stat-card-icon">
-            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Proceso" width="28" height="28" />
+            <span className="stat-card-title">Servicios en Proceso</span>
           </div>
         </Link>
         <Link to="/work-orders/terminados" className="stat-card-new stat-green">
           <div className="stat-card-text">
-            <span className="stat-card-title">Servicios Terminados</span>
             <span className="stat-card-value">{stats.completed}</span>
-          </div>
-          <div className="stat-card-icon">
-            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Terminados" width="28" height="28" />
+            <span className="stat-card-title">Servicios Terminados</span>
           </div>
         </Link>
         <Link to="/pilotos" className="stat-card-new stat-blue">
           <div className="stat-card-text">
-            <span className="stat-card-title">Pilotos Activos</span>
             <span className="stat-card-value">{stats.activeClients}</span>
-          </div>
-          <div className="stat-card-icon">
-            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Pilotos" width="28" height="28" />
+            <span className="stat-card-title">Pilotos Activos</span>
           </div>
         </Link>
       </div>
