@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import StatCard from '../components/StatCard';
 import ChartSection from '../components/ChartSection';
-import ActivityList from '../components/ActivityList';
 import StatusBadge from '../components/StatusBadge';
 
 function DashboardPage() {
