@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -13,29 +14,33 @@ function Layout() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar-fixed">
+      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        ☰
+      </button>
+      
+      <aside className={`sidebar-fixed ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <img src="/mecanica/logo-pavas.jpeg" alt="Pavas" className="logo-img" />
         </div>
         
         <nav className="sidebar-menu">
-          <NavLink to="/dashboard" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/dashboard" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
             <span className="menu-icon">📊</span>
             <span className="menu-text">Dashboard</span>
           </NavLink>
           
-          <NavLink to="/work-orders" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/work-orders" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
             <span className="menu-icon">📋</span>
             <span className="menu-text">Órdenes</span>
           </NavLink>
           
-          <NavLink to="/work-orders/new" className="menu-item">
+          <NavLink to="/work-orders/new" className="menu-item" onClick={() => setSidebarOpen(false)}>
             <span className="menu-icon">➕</span>
             <span className="menu-text">Nueva</span>
           </NavLink>
           
           {user?.role === 'ADMIN' && (
-            <NavLink to="/users" className="menu-item">
+            <NavLink to="/users" className="menu-item" onClick={() => setSidebarOpen(false)}>
               <span className="menu-icon">👥</span>
               <span className="menu-text">Usuarios</span>
             </NavLink>
@@ -50,6 +55,8 @@ function Layout() {
           </button>
         </div>
       </aside>
+      
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       
       <main className="main-content">
         <Outlet />
