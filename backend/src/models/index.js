@@ -5,7 +5,8 @@ const Bike = require('./Bike');
 const WorkOrder = require('./WorkOrder');
 const WorkOrderItem = require('./WorkOrderItem');
 const WorkOrderStatusHistory = require('./WorkOrderStatusHistory');
-const ChecklistItem = require('./ChecklistItem');
+
+const ChecklistItem = require('./ChecklistItem')(sequelize);
 
 // Configurar Sequelize para PostgreSQL
 sequelize.options.define = sequelize.options.define || {};
