@@ -8,6 +8,10 @@ if (process.env.DATABASE_URL) {
     dialect: 'postgres',
     logging: false,
     quoteIdentifiers: false,
+    define: {
+      underscored: true,
+      quoteIdentifiers: false,
+    },
     dialectOptions: {
       ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
     },
@@ -23,6 +27,10 @@ if (process.env.DATABASE_URL) {
       dialect: 'postgres',
       logging: false,
       quoteIdentifiers: false,
+      define: {
+        underscored: true,
+        quoteIdentifiers: false,
+      },
       dialectOptions: {
         ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
       },
