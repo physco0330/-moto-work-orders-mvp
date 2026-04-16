@@ -7,8 +7,6 @@ RUN npm install
 
 COPY . .
 
-RUN npx sequelize-cli db:migrate
-
 EXPOSE 4000
 
 CMD ["npm", "start"]
