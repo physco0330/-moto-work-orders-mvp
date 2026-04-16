@@ -4,7 +4,7 @@ const getDbConfig = () => {
   const ssl = process.env.NODE_ENV === 'production' ? { ssl: { require: true, rejectUnauthorized: false } } : {};
   
   if (process.env.DATABASE_URL) {
-    return { url: process.env.DATABASE_URL, dialect: 'postgres', ...ssl };
+    return { url: process.env.DATABASE_URL, dialect: 'postgres', quoteIdentifiers: false, ...ssl };
   }
   
   return {
@@ -15,6 +15,7 @@ const getDbConfig = () => {
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: false,
+    quoteIdentifiers: false,
     ...ssl,
   };
 };
