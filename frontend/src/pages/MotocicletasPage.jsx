@@ -6,6 +6,9 @@ function MotocicletasPage() {
   const [motos, setMotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [form, setForm] = useState({ plate: '', brand: '', model: '' });
 
   useEffect(() => {
     const load = async () => {
@@ -21,6 +24,33 @@ function MotocicletasPage() {
     };
     load();
   }, []);
+
+  const openEdit = (moto) => {
+    setEditando(moto);
+    setForm({ plate: moto.plate, brand: moto.brand, model: moto.model });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      await api.put(`/bikes/${editando.id}`, form);
+      setMotos(motos.map(m => m.id === editando.id ? { ...m, ...form } : m));
+      setShowModal(false);
+      setEditando(null);
+    } catch (e) {
+      alert(e.response?.data?.message || 'Error guardando');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('¿Eliminar moto?')) return;
+    try {
+      await api.delete(`/bikes/${id}`);
+      setMotos(motos.filter(m => m.id !== id));
+    } catch (e) {
+      alert(e.response?.data?.message || 'Error eliminando');
+    }
+  };
 
   return (
     <div className="content-grid">
@@ -57,17 +87,48 @@ function MotocicletasPage() {
                   <td>{m.client?.name || '-'}</td>
                   <td>
                     <div className="action-buttons">
-                      <button className="ghost small">Editar</button>
-                      <button className="danger small">Eliminar</button>
+                      <button className="ghost small" onClick={() => openEdit(m)}>Editar</button>
+                      <button className="danger small" onClick={() => handleDelete(m.id)}>Eliminar</button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!motos.length && (
-                <tr><td colSpan="5" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay motocicletas registradas</td></tr>
+                <tr><td colSpan="6" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay motocicletas</td></tr>
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Editar Motocicleta</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-stack">
+                <div>
+                  <label>Placa</label>
+                  <input value={form.plate} onChange={e => setForm({...form, plate: e.target.value})} />
+                </div>
+                <div>
+                  <label>Marca</label>
+                  <input value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+                </div>
+                <div>
+                  <label>Modelo</label>
+                  <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="ghost" onClick={() => setShowModal(false)}>Cancelar</button>
+              <button className="button" onClick={handleSave}>Guardar</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
