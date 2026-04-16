@@ -1,8 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import ActivityItem from './ActivityItem';
 
 function ActivityList({ activities }) {
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  };
+
   return (
     <div className="activity-list-new">
       <div className="activity-list-header">
@@ -11,13 +15,14 @@ function ActivityList({ activities }) {
       </div>
       <div className="activity-list-items">
         {activities.map((item, index) => (
-          <ActivityItem
-            key={index}
-            pilotName={item.pilotName}
-            serviceType={item.serviceType}
-            date={item.date}
-            hours={item.hours}
-          />
+          <div key={index} className="activity-item-new">
+            <div className="activity-item-icon">🏍️</div>
+            <div className="activity-item-info">
+              <span className="activity-item-name">{item.pilotName}</span>
+              <span className="activity-item-desc">{item.serviceType} - {formatDate(item.date)}</span>
+            </div>
+            <span className="activity-item-badge">{item.hours}h</span>
+          </div>
         ))}
       </div>
       <Link to="/work-orders/historial" className="activity-list-footer">

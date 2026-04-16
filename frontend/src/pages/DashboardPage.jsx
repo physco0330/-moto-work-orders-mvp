@@ -119,23 +119,31 @@ function DashboardPage() {
           <h3>Órdenes Recientes</h3>
           <Link to="/work-orders/historial" className="see-all-link">Ver todas →</Link>
         </div>
-        <div className="orders-grid">
-          {recentOrders.map(order => (
-            <Link key={order.id} to={`/work-orders/${order.id}`} className="order-card-mini">
-              <div className="order-card-header">
-                <span className="order-id">#{order.id}</span>
-                <StatusBadge status={order.status} />
-              </div>
-              <div className="order-card-body">
-                <span className="order-plate">{order.bike?.plate}</span>
-                <span className="order-client">{order.bike?.client?.name}</span>
-              </div>
-              <div className="order-card-footer">
-                <span>{order.entryDate}</span>
-                <span className="order-total">${Number(order.total || 0).toFixed(2)}</span>
-              </div>
-            </Link>
-          ))}
+        <div className="orders-table-wrapper">
+          <table className="orders-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Placa</th>
+                <th>Cliente</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map(order => (
+                <tr key={order.id} onClick={() => window.location.href = `/work-orders/${order.id}`}>
+                  <td className="order-id-cell">#{order.id}</td>
+                  <td><span className="plate-badge">{order.bike?.plate}</span></td>
+                  <td className="client-cell">{order.bike?.client?.name}</td>
+                  <td><StatusBadge status={order.status} /></td>
+                  <td className="date-cell">{order.entryDate}</td>
+                  <td className="total-cell">${Number(order.total || 0).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
