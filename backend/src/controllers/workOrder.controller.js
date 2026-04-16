@@ -84,4 +84,5 @@ module.exports = {
   deleteWorkOrderItem,
   getWorkOrderHistory,
   getAllowedStatusTransitions,
+  updateWorkOrder,
 };
