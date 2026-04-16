@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 function PilotosPage() {
   const [pilotos, setPilotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -66,7 +68,7 @@ function PilotosPage() {
                   <td><span className="badge">Activo</span></td>
                   <td>
                     <div className="action-buttons">
-                      <button className="ghost small">Editar</button>
+                      <button className="ghost small" onClick={() => navigate(`/pilotos/edit/${p.id}`)}>Editar</button>
                       <button className="danger small" onClick={() => handleDelete(p.id)}>Eliminar</button>
                     </div>
                   </td>

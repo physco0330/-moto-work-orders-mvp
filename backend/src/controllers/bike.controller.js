@@ -16,4 +16,9 @@ const getBikeById = asyncHandler(async (req, res) => {
   res.status(200).json(bike);
 });
 
-module.exports = { createBike, searchBikes, getBikeById };
+const deleteBike = asyncHandler(async (req, res) => {
+  await bikeService.deleteBike(req.params.id);
+  res.status(200).json({ message: 'Motocicleta eliminada' });
+});
+
+module.exports = { createBike, searchBikes, getBikeById, deleteBike };

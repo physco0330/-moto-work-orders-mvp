@@ -34,7 +34,7 @@ function ItemsPage() {
     <div className="content-grid">
       <div className="page-hero">
         <div>
-          <h1 className="page-title">Items de Checklist</h1>
+          <h1 className="page-title">Ítems</h1>
           <p className="page-description">Lista de verificación para servicios del taller.</p>
         </div>
       </div>

@@ -10,5 +10,6 @@ router.use(auth);
 router.post('/', validate(bikeCreateSchema), bikeController.createBike);
 router.get('/', validate(bikeSearchSchema, 'query'), bikeController.searchBikes);
 router.get('/:id', validate(bikeIdParamSchema, 'params'), bikeController.getBikeById);
+router.delete('/:id', validate(bikeIdParamSchema, 'params'), bikeController.deleteBike);
 
 module.exports = router;

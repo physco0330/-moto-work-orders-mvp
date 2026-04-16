@@ -11,6 +11,7 @@ import RoleRoute from './components/RoleRoute';
 import Layout from './components/Layout';
 import { useAuth } from './context/AuthContext';
 import PilotosPage from './pages/PilotosPage';
+import EditPilotPage from './pages/EditPilotPage';
 import MotocicletasPage from './pages/MotocicletasPage';
 import ItemsPage from './pages/ItemsPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
@@ -34,6 +35,7 @@ function App() {
           <Route path="/work-orders/new" element={<CreateWorkOrderPage />} />
           <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
           <Route path="/pilotos" element={<PilotosPage />} />
+          <Route path="/pilotos/edit/:id" element={<EditPilotPage />} />
           <Route path="/motocicletas" element={<MotocicletasPage />} />
           <Route path="/items" element={<ItemsPage />} />
           <Route path="/configuracion" element={<ConfiguracionPage />} />
