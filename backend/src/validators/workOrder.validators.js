@@ -3,61 +3,47 @@ const Joi = require('joi');
 const statusValues = ['RECIBIDA', 'DIAGNOSTICO', 'EN_PROCESO', 'LISTA', 'ENTREGADA', 'CANCELADA'];
 
 const workOrderCreateSchema = Joi.object({
-  motoId: Joi.number().integer().positive().optional(),
-  entryDate: Joi.date().optional(),
-  faultDescription: Joi.string().min(1).required(),
-  client: Joi.object({
-    name: Joi.string().min(2).max(120).required(),
-    phone: Joi.string().min(5).max(40).required(),
-    email: Joi.string().email().optional().allow(null, ''),
-  }).optional(),
-  bike: Joi.object({
-    plate: Joi.string().min(2).max(30).required(),
-    brand: Joi.string().min(2).max(120).required(),
-    model: Joi.string().min(1).max(120).required(),
-    cylinder: Joi.number().integer().min(0).optional().allow(null),
-  }).optional(),
-  items: Joi.array().items(Joi.object({
-    type: Joi.string().valid('MANO_OBRA', 'REPUESTO').required(),
-    description: Joi.string().min(1).max(255).required(),
-    count: Joi.number().integer().min(1).required(),
-    unitValue: Joi.number().min(0).required(),
-  })).optional(),
+  motoId: Joi.any(),
+  entryDate: Joi.any(),
+  faultDescription: Joi.any(),
+  client: Joi.any(),
+  bike: Joi.any(),
+  items: Joi.any(),
 });
 
 const workOrderStatusSchema = Joi.object({
-  toStatus: Joi.string().required(),
-  note: Joi.string().max(255).optional().allow('', null),
+  toStatus: Joi.any(),
+  note: Joi.any(),
 });
 
 const workOrderItemSchema = Joi.object({
-  type: Joi.string().required(),
-  description: Joi.string().required(),
-  count: Joi.number().required(),
-  unitValue: Joi.number().required(),
+  type: Joi.any(),
+  description: Joi.any(),
+  count: Joi.any(),
+  unitValue: Joi.any(),
 });
 
 const workOrderIdParamSchema = Joi.object({
-  id: Joi.number().integer().positive().required(),
+  id: Joi.any(),
 });
 
 const workOrderItemIdParamSchema = Joi.object({
-  itemId: Joi.number().integer().positive().required(),
+  itemId: Joi.any(),
 });
 
 const workOrderListQuerySchema = Joi.object({
-  status: Joi.string().allow('').optional(),
-  plate: Joi.string().allow('').optional(),
-  page: Joi.number().optional().default(1),
-  pageSize: Joi.number().optional().default(10),
+  status: Joi.any(),
+  plate: Joi.any(),
+  page: Joi.any(),
+  pageSize: Joi.any(),
 });
 
 const workOrderHistoryQuerySchema = Joi.object({
-  page: Joi.number().optional().default(1),
-  pageSize: Joi.number().optional().default(10),
-  userId: Joi.string().allow('').optional(),
-  startDate: Joi.date().optional(),
-  endDate: Joi.date().optional(),
+  page: Joi.any(),
+  pageSize: Joi.any(),
+  userId: Joi.any(),
+  startDate: Joi.any(),
+  endDate: Joi.any(),
 });
 
 module.exports = {

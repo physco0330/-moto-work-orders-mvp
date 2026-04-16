@@ -1,17 +1,17 @@
 const Joi = require('joi');
 
 const clientCreateSchema = Joi.object({
-  name: Joi.string().min(2).max(120).required(),
-  phone: Joi.string().min(5).max(40).required(),
-  email: Joi.string().email().optional().allow(null, ''),
+  name: Joi.any(),
+  phone: Joi.any(),
+  email: Joi.any(),
 });
 
 const clientIdParamSchema = Joi.object({
-  id: Joi.number().integer().positive().required(),
+  id: Joi.any(),
 });
 
 const clientSearchSchema = Joi.object({
-  search: Joi.string().allow('').optional(),
+  search: Joi.any(),
 });
 
 module.exports = { clientCreateSchema, clientIdParamSchema, clientSearchSchema };

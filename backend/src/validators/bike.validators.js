@@ -1,19 +1,19 @@
 const Joi = require('joi');
 
 const bikeCreateSchema = Joi.object({
-  plate: Joi.string().min(2).max(30).required(),
-  brand: Joi.string().min(2).max(120).required(),
-  model: Joi.string().min(1).max(120).required(),
-  cylinder: Joi.number().integer().min(0).optional().allow(null),
-  clientId: Joi.number().integer().positive().required(),
+  plate: Joi.any(),
+  brand: Joi.any(),
+  model: Joi.any(),
+  cylinder: Joi.any(),
+  clientId: Joi.any(),
 });
 
 const bikeIdParamSchema = Joi.object({
-  id: Joi.number().integer().positive().required(),
+  id: Joi.any(),
 });
 
 const bikeSearchSchema = Joi.object({
-  plate: Joi.string().allow('').optional(),
+  plate: Joi.any(),
 });
 
 module.exports = { bikeCreateSchema, bikeIdParamSchema, bikeSearchSchema };
