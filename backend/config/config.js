@@ -1,32 +1,26 @@
 require('dotenv').config();
 
-// Configuracion usada por sequelize-cli para migraciones y seeders.
+const getDbConfig = () => {
+  const ssl = process.env.NODE_ENV === 'production' ? { ssl: { require: true, rejectUnauthorized: false } } : {};
+  
+  if (process.env.DATABASE_URL) {
+    return { url: process.env.DATABASE_URL, dialect: 'postgres', ...ssl };
+  }
+  
+  return {
+    username: process.env.DB_USER || process.env.JAWSDB_USERNAME,
+    password: process.env.DB_PASSWORD || process.env.JAWSDB_PASSWORD,
+    database: process.env.DB_NAME || process.env.JAWSDB_NAME,
+    host: process.env.DB_HOST || process.env.JAWSDB_HOST,
+    port: process.env.DB_PORT || 5432,
+    dialect: 'postgres',
+    logging: false,
+    ...ssl,
+  };
+};
+
 module.exports = {
-  development: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 3306,
-    dialect: process.env.DB_DIALECT || 'mysql',
-    logging: false,
-  },
-  test: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: `${process.env.DB_NAME}_test`,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 3306,
-    dialect: process.env.DB_DIALECT || 'mysql',
-    logging: false,
-  },
-  production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 3306,
-    dialect: process.env.DB_DIALECT || 'mysql',
-    logging: false,
-  },
+  development: getDbConfig(),
+  test: getDbConfig(),
+  production: getDbConfig(),
 };
