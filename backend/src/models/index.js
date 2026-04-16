@@ -6,6 +6,12 @@ const WorkOrder = require('./WorkOrder');
 const WorkOrderItem = require('./WorkOrderItem');
 const WorkOrderStatusHistory = require('./WorkOrderStatusHistory');
 
+// Configurar Sequelize para PostgreSQL
+sequelize.options.define = sequelize.options.define || {};
+sequelize.options.define.underscored = true;
+sequelize.options.define.underscoredAll = true;
+sequelize.options.define.quoteIdentifier = false;
+
 // Relaciones principales del dominio.
 Client.hasMany(Bike, { foreignKey: 'clientId', as: 'bikes' });
 Bike.belongsTo(Client, { foreignKey: 'clientId', as: 'client' });
