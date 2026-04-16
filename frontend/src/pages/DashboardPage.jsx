@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
+import Chart from 'chart.js/auto';
 
 function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, activeClients: 0 });
@@ -68,13 +69,13 @@ function DashboardPage() {
     }
   };
 
-  const renderChart = async () => {
-    const Chart = (await import('chart.js/auto')).default;
-    
+  const renderChart = () => {
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
+    if (!chartRef.current) return;
+    
     const ctx = chartRef.current.getContext('2d');
     chartInstanceRef.current = new Chart(ctx, {
       type: 'line',
