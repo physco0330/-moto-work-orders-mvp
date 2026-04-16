@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.get('/health', (req, res) => {
-  res.json({ ok: true, message: 'API en funcionamiento' });
+  res.json({ ok: true, message: 'API en funcionamiento', timestamp: new Date().toISOString() });
 });
 
 app.use('/api', apiRoutes);
