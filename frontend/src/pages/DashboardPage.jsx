@@ -4,11 +4,13 @@ import api from '../services/api';
 import StatCard from '../components/StatCard';
 import ChartSection from '../components/ChartSection';
 import ActivityList from '../components/ActivityList';
+import StatusBadge from '../components/StatusBadge';
 
 function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, activeClients: 0 });
   const [activities, setActivities] = useState([]);
   const [chartData, setChartData] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +29,7 @@ function DashboardPage() {
       const clientIds = new Set(orders.map(o => o.bike?.clientId).filter(Boolean));
       
       setStats({ pending, inProgress, completed, activeClients: clientIds.size });
+      setRecentOrders(orders.slice(0, 6));
 
       const days = [];
       const today = new Date();
@@ -72,10 +75,34 @@ function DashboardPage() {
       </div>
 
       <div className="stats-grid-new">
-        <StatCard title="Servicios Pendientes" value={stats.pending} icon="⏳" color="red" />
-        <StatCard title="Servicios en Proceso" value={stats.inProgress} icon="🔧" color="orange" />
-        <StatCard title="Servicios Terminados" value={stats.completed} icon="✅" color="green" />
-        <StatCard title="Pilotos Activos" value={stats.activeClients} icon="🏍️" color="blue" />
+        <Link to="/work-orders/pendientes" className="stat-card-new stat-red">
+          <div className="stat-card-icon">⏳</div>
+          <div className="stat-card-content">
+            <span className="stat-card-title">Pendientes</span>
+            <span className="stat-card-value">{stats.pending}</span>
+          </div>
+        </Link>
+        <Link to="/work-orders/proceso" className="stat-card-new stat-orange">
+          <div className="stat-card-icon">🔧</div>
+          <div className="stat-card-content">
+            <span className="stat-card-title">En Proceso</span>
+            <span className="stat-card-value">{stats.inProgress}</span>
+          </div>
+        </Link>
+        <Link to="/work-orders/terminados" className="stat-card-new stat-green">
+          <div className="stat-card-icon">✅</div>
+          <div className="stat-card-content">
+            <span className="stat-card-title">Terminados</span>
+            <span className="stat-card-value">{stats.completed}</span>
+          </div>
+        </Link>
+        <Link to="/pilotos" className="stat-card-new stat-blue">
+          <div className="stat-card-icon">🏍️</div>
+          <div className="stat-card-content">
+            <span className="stat-card-title">Pilotos</span>
+            <span className="stat-card-value">{stats.activeClients}</span>
+          </div>
+        </Link>
       </div>
 
       <div className="dashboard-grid">
@@ -86,6 +113,35 @@ function DashboardPage() {
           <ActivityList activities={activities} />
         </div>
       </div>
+
+      <div className="dashboard-orders-section">
+        <div className="orders-section-header">
+          <h3>Órdenes Recientes</h3>
+          <Link to="/work-orders/historial" className="see-all-link">Ver todas →</Link>
+        </div>
+        <div className="orders-grid">
+          {recentOrders.map(order => (
+            <Link key={order.id} to={`/work-orders/${order.id}`} className="order-card-mini">
+              <div className="order-card-header">
+                <span className="order-id">#{order.id}</span>
+                <StatusBadge status={order.status} />
+              </div>
+              <div className="order-card-body">
+                <span className="order-plate">{order.bike?.plate}</span>
+                <span className="order-client">{order.bike?.client?.name}</span>
+              </div>
+              <div className="order-card-footer">
+                <span>{order.entryDate}</span>
+                <span className="order-total">${Number(order.total || 0).toFixed(2)}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <Link to="/work-orders/new" className="fab-button">
+        <span>+</span>
+      </Link>
     </div>
   );
 }

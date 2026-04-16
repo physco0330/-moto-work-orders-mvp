@@ -1111,4 +1111,135 @@ tbody tr:last-child td { border-bottom: 0; }
     font-size: 24px;
   }
 }
+
+/* Órdenes Recientes en Dashboard */
+.dashboard-orders-section {
+  margin-top: 24px;
+}
+
+.orders-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.orders-section-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.see-all-link {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.see-all-link:hover {
+  color: #1d4ed8;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.order-card-mini {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(148,163,184,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.2s;
+}
+
+.order-card-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #2563eb;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.order-id {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.order-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.order-plate {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 15px;
+}
+
+.order-client {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.order-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.order-total {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* FAB Button */
+.fab-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  z-index: 50;
+  transition: all 0.2s;
+}
+
+.fab-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.5);
+}
+
+@media (max-width: 1024px) {
+  .orders-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+}
 }

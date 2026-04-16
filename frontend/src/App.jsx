@@ -30,7 +30,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/work-orders" element={<WorkOrdersPage />} />
+          <Route path="/work-orders" element={<Navigate to="/dashboard" replace />} />
           <Route path="/work-orders/new" element={<CreateWorkOrderPage />} />
           <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
           <Route path="/pilotos" element={<PilotosPage />} />
