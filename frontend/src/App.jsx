@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
 import WorkOrdersPage from './pages/WorkOrdersPage';
 import CreateWorkOrderPage from './pages/CreateWorkOrderPage';
 import WorkOrderDetailPage from './pages/WorkOrderDetailPage';
@@ -19,10 +20,11 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/work-orders" replace /> : <LoginPage />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/work-orders" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/work-orders" element={<WorkOrdersPage />} />
           <Route path="/work-orders/new" element={<CreateWorkOrderPage />} />
           <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
@@ -31,7 +33,7 @@ function App() {
           </Route>
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to={user ? '/work-orders' : '/login'} replace />} />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     </Routes>
   );
 }

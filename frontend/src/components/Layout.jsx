@@ -1,35 +1,52 @@
-import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Layout base con navegación y logout.
 function Layout() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="app-shell">
       <header className="topbar">
+        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
         <div className="brand">
           <div className="brand-mark">P</div>
-          <div>
-            <div className="brand-title">Pavas Taller</div>
-            <div className="brand-subtitle">Control de ordenes de trabajo</div>
-          </div>
+          <div className="brand-title">Pavas Taller</div>
         </div>
-        <nav className="nav">
-          <NavLink to="/work-orders" data-icon="📋"><span className="desktop-only">Ordenes</span></NavLink>
-          <NavLink to="/work-orders/new" data-icon="➕"><span className="desktop-only">Nueva orden</span></NavLink>
-          {user?.role === 'ADMIN' && <NavLink to="/users" data-icon="👤"><span className="desktop-only">Usuarios</span></NavLink>}
-        </nav>
-        <div className="user-box">
-          <span className="chip">{user?.name}</span>
-          <span className="badge">{user?.role}</span>
-          <button className="ghost" onClick={logout} data-icon="🚪">Salir</button>
-        </div>
+        <button className="user-btn" onClick={handleLogout}>🚪</button>
       </header>
+
+      <nav className={`sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <span className="user-name">{user?.name}</span>
+          <span className="user-role">{user?.role}</span>
+        </div>
+        <NavLink to="/dashboard" onClick={() => setMenuOpen(false)}>📊 <span>Dashboard</span></NavLink>
+        <NavLink to="/work-orders" onClick={() => setMenuOpen(false)}>📋 <span>Órdenes</span></NavLink>
+        <NavLink to="/work-orders/new" onClick={() => setMenuOpen(false)}>➕ <span>Nueva</span></NavLink>
+        {user?.role === 'ADMIN' && <NavLink to="/users" onClick={() => setMenuOpen(false)}>👥 <span>Usuarios</span></NavLink>}
+        <button className="logout-btn" onClick={handleLogout}>🚪 <span>Salir</span></button>
+      </nav>
+
+      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)} />}
+
       <main className="content">
         <Outlet />
       </main>
+
+      <nav className="bottom-nav">
+        <NavLink to="/dashboard" end>📊</NavLink>
+        <NavLink to="/work-orders">📋</NavLink>
+        <NavLink to="/work-orders/new">➕</NavLink>
+        {user?.role === 'ADMIN' && <NavLink to="/users">👥</NavLink>}
+      </nav>
     </div>
   );
 }
