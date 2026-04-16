@@ -294,7 +294,7 @@ const getWorkOrderHistory = async (id) => {
   return WorkOrderStatusHistory.findAll({
     where: { workOrderId: id },
     include: [{ model: User, as: 'changedBy', attributes: ['id', 'name', 'email', 'role'] }],
-    order: [[sequelize.literal('`WorkOrderStatusHistory`.`created_at`'), 'DESC']],
+    order: [['createdAt', 'DESC']],
   });
 };
 
@@ -324,7 +324,7 @@ const getWorkOrderHistoryPaginated = async (id, { page = 1, pageSize = 10, userI
   const { rows, count } = await WorkOrderStatusHistory.findAndCountAll({
     where,
     include: [{ model: User, as: 'changedBy', attributes: ['id', 'name', 'email', 'role'] }],
-    order: [[sequelize.literal('`WorkOrderStatusHistory`.`created_at`'), 'DESC']],
+    order: [['createdAt', 'DESC']],
     limit,
     offset,
   });
