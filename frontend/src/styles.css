@@ -878,6 +878,35 @@ tbody tr:last-child td { border-bottom: 0; }
   margin: 0 0 8px;
 }
 
+/* FAB Button - Top */
+.fab-button-top {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  z-index: 50;
+  transition: all 0.2s;
+}
+
+.fab-button-top:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.5);
+}
+
+.fab-icon {
+  font-size: 20px;
+  font-weight: 700;
+}
+
 .dashboard-header p {
   color: #64748b;
   margin: 0;
@@ -1088,6 +1117,92 @@ tbody tr:last-child td { border-bottom: 0; }
 }
 
 .activity-list-footer:hover {
+  color: #1d4ed8;
+}
+
+/* Activity Table */
+.activity-table-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(148,163,184,0.15);
+  overflow: hidden;
+}
+
+.activity-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-table-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.activity-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.activity-table th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter: 0.05em;
+  background: #f8fafc;
+}
+
+.activity-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.activity-icon-cell {
+  font-size: 18px;
+}
+
+.pilot-cell {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.service-cell {
+  color: #64748b;
+}
+
+.hours-badge {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.activity-footer-link {
+  display: block;
+  padding: 14px;
+  text-align: center;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 13px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.activity-footer-link:hover {
+  background: #f8fafc;
   color: #1d4ed8;
 }
 

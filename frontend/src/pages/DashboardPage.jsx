@@ -67,8 +67,18 @@ function DashboardPage() {
 
   const totalServices = chartData.reduce((sum, d) => sum + d.count, 0);
 
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  };
+
   return (
     <div className="dashboard-new">
+      <Link to="/work-orders/new" className="fab-button-top">
+        <span className="fab-icon">+</span>
+        <span className="fab-text">Nueva Orden</span>
+      </Link>
+
       <div className="dashboard-header">
         <h1>Panel Principal</h1>
         <p>Vista general del taller y actividad reciente</p>
@@ -76,28 +86,49 @@ function DashboardPage() {
 
       <div className="stats-grid-new">
         <Link to="/work-orders/pendientes" className="stat-card-new stat-red">
-          <div className="stat-card-icon">⏳</div>
+          <div className="stat-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12,6 12,12 16,14"/>
+            </svg>
+          </div>
           <div className="stat-card-content">
             <span className="stat-card-title">Pendientes</span>
             <span className="stat-card-value">{stats.pending}</span>
           </div>
         </Link>
         <Link to="/work-orders/proceso" className="stat-card-new stat-orange">
-          <div className="stat-card-icon">🔧</div>
+          <div className="stat-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
           <div className="stat-card-content">
             <span className="stat-card-title">En Proceso</span>
             <span className="stat-card-value">{stats.inProgress}</span>
           </div>
         </Link>
         <Link to="/work-orders/terminados" className="stat-card-new stat-green">
-          <div className="stat-card-icon">✅</div>
+          <div className="stat-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+          </div>
           <div className="stat-card-content">
             <span className="stat-card-title">Terminados</span>
             <span className="stat-card-value">{stats.completed}</span>
           </div>
         </Link>
         <Link to="/pilotos" className="stat-card-new stat-blue">
-          <div className="stat-card-icon">🏍️</div>
+          <div className="stat-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
           <div className="stat-card-content">
             <span className="stat-card-title">Pilotos</span>
             <span className="stat-card-value">{stats.activeClients}</span>
@@ -110,7 +141,37 @@ function DashboardPage() {
           <ChartSection data={chartData} total={totalServices} />
         </div>
         <div className="dashboard-activity">
-          <ActivityList activities={activities} />
+          <div className="activity-table-wrapper">
+            <div className="activity-table-header">
+              <h3>Actividad Reciente</h3>
+              <span className="activity-filter">Hoy</span>
+            </div>
+            <table className="activity-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Piloto</th>
+                  <th>Servicio</th>
+                  <th>Fecha</th>
+                  <th>Horas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities.map((item, index) => (
+                  <tr key={index}>
+                    <td className="activity-icon-cell">🏍️</td>
+                    <td className="pilot-cell">{item.pilotName}</td>
+                    <td className="service-cell">{item.serviceType}</td>
+                    <td className="date-cell">{formatDate(item.date)}</td>
+                    <td><span className="hours-badge">{item.hours}h</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Link to="/work-orders/historial" className="activity-footer-link">
+              Ver todo el historial →
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -146,10 +207,6 @@ function DashboardPage() {
           </table>
         </div>
       </div>
-
-      <Link to="/work-orders/new" className="fab-button">
-        <span>+</span>
-      </Link>
     </div>
   );
 }
