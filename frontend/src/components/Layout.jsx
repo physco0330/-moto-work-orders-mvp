@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -14,39 +13,47 @@ function Layout() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
-        <div className="brand">
-          <div className="brand-mark">P</div>
-          <div className="brand-title">Pavas Taller</div>
+      <aside className="sidebar-fixed">
+        <div className="sidebar-logo">
+          <img src="/mecanica/logo-pavas.jpeg" alt="Pavas" className="logo-img" />
         </div>
-        <button className="user-btn" onClick={handleLogout}>🚪</button>
-      </header>
-
-      <nav className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <span className="user-name">{user?.name}</span>
-          <span className="user-role">{user?.role}</span>
+        
+        <nav className="sidebar-menu">
+          <NavLink to="/dashboard" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
+            <span className="menu-icon">📊</span>
+            <span className="menu-text">Dashboard</span>
+          </NavLink>
+          
+          <NavLink to="/work-orders" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}>
+            <span className="menu-icon">📋</span>
+            <span className="menu-text">Órdenes</span>
+          </NavLink>
+          
+          <NavLink to="/work-orders/new" className="menu-item">
+            <span className="menu-icon">➕</span>
+            <span className="menu-text">Nueva</span>
+          </NavLink>
+          
+          {user?.role === 'ADMIN' && (
+            <NavLink to="/users" className="menu-item">
+              <span className="menu-icon">👥</span>
+              <span className="menu-text">Usuarios</span>
+            </NavLink>
+          )}
+        </nav>
+        
+        <div className="sidebar-footer">
+          <div className="brand-name">PAVAS TALLER</div>
+          <button className="logout-btn" onClick={handleLogout}>
+            <span>🚪</span>
+            <span>Cerrar sesión</span>
+          </button>
         </div>
-        <NavLink to="/dashboard" onClick={() => setMenuOpen(false)}>📊 <span>Dashboard</span></NavLink>
-        <NavLink to="/work-orders" onClick={() => setMenuOpen(false)}>📋 <span>Órdenes</span></NavLink>
-        <NavLink to="/work-orders/new" onClick={() => setMenuOpen(false)}>➕ <span>Nueva</span></NavLink>
-        {user?.role === 'ADMIN' && <NavLink to="/users" onClick={() => setMenuOpen(false)}>👥 <span>Usuarios</span></NavLink>}
-        <button className="logout-btn" onClick={handleLogout}>🚪 <span>Salir</span></button>
-      </nav>
-
-      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)} />}
-
-      <main className="content">
+      </aside>
+      
+      <main className="main-content">
         <Outlet />
       </main>
-
-      <nav className="bottom-nav">
-        <NavLink to="/dashboard" end>📊</NavLink>
-        <NavLink to="/work-orders">📋</NavLink>
-        <NavLink to="/work-orders/new">➕</NavLink>
-        {user?.role === 'ADMIN' && <NavLink to="/users">👥</NavLink>}
-      </nav>
     </div>
   );
 }
