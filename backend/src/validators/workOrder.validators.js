@@ -46,16 +46,16 @@ const workOrderItemIdParamSchema = Joi.object({
 });
 
 const workOrderListQuerySchema = Joi.object({
-  status: Joi.string().valid(...statusValues).allow('').optional(),
+  status: Joi.string().allow('').optional(),
   plate: Joi.string().allow('').optional(),
-  page: Joi.number().integer().min(1).optional().default(1),
-  pageSize: Joi.number().integer().min(1).max(100).optional().default(10),
+  page: Joi.number().optional().default(1),
+  pageSize: Joi.number().optional().default(10),
 });
 
 const workOrderHistoryQuerySchema = Joi.object({
   page: Joi.number().optional().default(1),
   pageSize: Joi.number().optional().default(10),
-  userId: Joi.number().optional(),
+  userId: Joi.string().allow('').optional(),
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),
 });
