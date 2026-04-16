@@ -84,52 +84,39 @@ function DashboardPage() {
 
       <div className="stats-grid-new">
         <Link to="/work-orders/pendientes" className="stat-card-new stat-red">
-          <div className="stat-card-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12,6 12,12 16,14"/>
-            </svg>
-          </div>
-          <div className="stat-card-content">
-            <span className="stat-card-title">Pendientes</span>
+          <div className="stat-card-text">
+            <span className="stat-card-title">Servicios Pendientes</span>
             <span className="stat-card-value">{stats.pending}</span>
+          </div>
+          <div className="stat-card-icon">
+            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Pendientes" width="28" height="28" />
           </div>
         </Link>
         <Link to="/work-orders/proceso" className="stat-card-new stat-orange">
-          <div className="stat-card-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-            </svg>
-          </div>
-          <div className="stat-card-content">
-            <span className="stat-card-title">En Proceso</span>
+          <div className="stat-card-text">
+            <span className="stat-card-title">Servicios en Proceso</span>
             <span className="stat-card-value">{stats.inProgress}</span>
+          </div>
+          <div className="stat-card-icon">
+            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Proceso" width="28" height="28" />
           </div>
         </Link>
         <Link to="/work-orders/terminados" className="stat-card-new stat-green">
-          <div className="stat-card-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22,4 12,14.01 9,11.01"/>
-            </svg>
-          </div>
-          <div className="stat-card-content">
-            <span className="stat-card-title">Terminados</span>
+          <div className="stat-card-text">
+            <span className="stat-card-title">Servicios Terminados</span>
             <span className="stat-card-value">{stats.completed}</span>
+          </div>
+          <div className="stat-card-icon">
+            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Terminados" width="28" height="28" />
           </div>
         </Link>
         <Link to="/pilotos" className="stat-card-new stat-blue">
-          <div className="stat-card-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <div className="stat-card-content">
-            <span className="stat-card-title">Pilotos</span>
+          <div className="stat-card-text">
+            <span className="stat-card-title">Pilotos Activos</span>
             <span className="stat-card-value">{stats.activeClients}</span>
+          </div>
+          <div className="stat-card-icon">
+            <img src="/mecanica/icono-tuerca-engranaje.png" alt="Pilotos" width="28" height="28" />
           </div>
         </Link>
       </div>
