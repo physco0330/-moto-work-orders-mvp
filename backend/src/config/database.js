@@ -3,19 +3,21 @@ require('dotenv').config();
 
 let sequelize;
 
-if (process.env.DATABASE_URL) {
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',
-    logging: false,
+const pgOptions = {
+  dialect: 'postgres',
+  logging: false,
+  dialectOptions: {
+    ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
+  },
+  define: {
+    underscored: true,
+    freezeTableName: true,
     quoteIdentifiers: false,
-    define: {
-      underscored: true,
-      quoteIdentifiers: false,
-    },
-    dialectOptions: {
-      ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
-    },
-  });
+  },
+};
+
+if (process.env.DATABASE_URL) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, pgOptions);
 } else {
   sequelize = new Sequelize(
     process.env.DB_NAME || process.env.JAWSDB_NAME,
@@ -24,16 +26,7 @@ if (process.env.DATABASE_URL) {
     {
       host: process.env.DB_HOST || process.env.JAWSDB_HOST,
       port: process.env.DB_PORT || 5432,
-      dialect: 'postgres',
-      logging: false,
-      quoteIdentifiers: false,
-      define: {
-        underscored: true,
-        quoteIdentifiers: false,
-      },
-      dialectOptions: {
-        ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
-      },
+      ...pgOptions,
     }
   );
 }

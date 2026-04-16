@@ -1,10 +1,21 @@
 require('dotenv').config();
 
 const getDbConfig = () => {
-  const ssl = process.env.NODE_ENV === 'production' ? { ssl: { require: true, rejectUnauthorized: false } } : {};
+  const opts = {
+    dialect: 'postgres',
+    logging: false,
+    define: {
+      underscored: true,
+      freezeTableName: true,
+      quoteIdentifiers: false,
+    },
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
+    },
+  };
   
   if (process.env.DATABASE_URL) {
-    return { url: process.env.DATABASE_URL, dialect: 'postgres', quoteIdentifiers: false, ...ssl };
+    return { url: process.env.DATABASE_URL, ...opts };
   }
   
   return {
@@ -13,10 +24,7 @@ const getDbConfig = () => {
     database: process.env.DB_NAME || process.env.JAWSDB_NAME,
     host: process.env.DB_HOST || process.env.JAWSDB_HOST,
     port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    logging: false,
-    quoteIdentifiers: false,
-    ...ssl,
+    ...opts,
   };
 };
 
