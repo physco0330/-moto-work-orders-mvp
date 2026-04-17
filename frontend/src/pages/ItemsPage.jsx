@@ -149,16 +149,6 @@ function ItemsPage() {
                     <div className="action-buttons">
                       <button 
                         className="ghost small icon-btn" 
-                        onClick={() => setViewItem(item)}
-                        title="Ver"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      </button>
-                      <button 
-                        className="ghost small icon-btn" 
                         onClick={() => handleToggleActive(item)}
                         disabled={loadingAction === item.id}
                         title={item.active ? 'Desactivar' : 'Activar'}

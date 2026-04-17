@@ -10,5 +10,6 @@ router.use(auth);
 router.post('/', validate(clientCreateSchema), clientController.createClient);
 router.get('/', validate(clientSearchSchema, 'query'), clientController.searchClients);
 router.get('/:id', validate(clientIdParamSchema, 'params'), clientController.getClientById);
+router.delete('/:id', validate(clientIdParamSchema, 'params'), clientController.deleteClient);
 
 module.exports = router;

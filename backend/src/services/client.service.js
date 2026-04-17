@@ -31,4 +31,22 @@ const getClientById = async (id) => {
   return client;
 };
 
-module.exports = { createClient, searchClients, getClientById };
+const deleteClient = async (id) => {
+  const client = await Client.findByPk(id, { include: [{ model: Bike, as: 'bikes' }] });
+  if (!client) {
+    const error = new Error('Piloto no encontrado');
+    error.statusCode = 404;
+    throw error;
+  }
+  
+  if (client.bikes && client.bikes.length > 0) {
+    const error = new Error('No se puede eliminar: el piloto tiene bicicletas asociadas');
+    error.statusCode = 400;
+    throw error;
+  }
+  
+  await client.destroy();
+  return true;
+};
+
+module.exports = { createClient, searchClients, getClientById, deleteClient };

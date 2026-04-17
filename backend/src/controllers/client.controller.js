@@ -16,4 +16,9 @@ const getClientById = asyncHandler(async (req, res) => {
   res.status(200).json(client);
 });
 
-module.exports = { createClient, searchClients, getClientById };
+const deleteClient = asyncHandler(async (req, res) => {
+  await clientService.deleteClient(req.params.id);
+  res.status(200).json({ message: 'Piloto eliminado' });
+});
+
+module.exports = { createClient, searchClients, getClientById, deleteClient };
