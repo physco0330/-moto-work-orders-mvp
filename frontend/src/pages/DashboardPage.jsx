@@ -4,6 +4,8 @@ import api from '../services/api';
 import ChartSection from '../components/ChartSection';
 import StatusBadge from '../components/StatusBadge';
 
+// Trigger redeploy
+
 function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
