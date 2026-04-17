@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
 
 function SortableTh({ label, sortKey, currentSort, onSort }) {
@@ -77,7 +77,7 @@ function ItemsPage() {
     setSortConfig(config);
   };
 
-  const sortedItems = React.useMemo(() => {
+  const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
       let aVal = a[sortConfig.key];
       let bVal = b[sortConfig.key];

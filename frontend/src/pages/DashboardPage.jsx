@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import ChartSection from '../components/ChartSection';
@@ -106,7 +106,7 @@ function DashboardPage() {
     setSortConfig(config);
   };
 
-  const sortedOrders = React.useMemo(() => {
+  const sortedOrders = useMemo(() => {
     return [...recentOrders].sort((a, b) => {
       let aVal = getNestedValue(a, sortConfig.key);
       let bVal = getNestedValue(b, sortConfig.key);

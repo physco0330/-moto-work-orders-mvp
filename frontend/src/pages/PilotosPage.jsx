@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -80,7 +80,7 @@ function PilotosPage() {
     setSortConfig(config);
   };
 
-  const sortedPilotos = React.useMemo(() => {
+  const sortedPilotos = useMemo(() => {
     return [...pilotos].sort((a, b) => {
       let aVal = a[sortConfig.key];
       let bVal = b[sortConfig.key];

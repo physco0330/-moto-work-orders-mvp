@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
 
 function getNestedValue(obj, path) {
@@ -114,7 +114,7 @@ function MotocicletasPage() {
     setSortConfig(config);
   };
 
-  const sortedMotos = React.useMemo(() => {
+  const sortedMotos = useMemo(() => {
     return [...filteredMotos].sort((a, b) => {
       let aVal = getNestedValue(a, sortConfig.key);
       let bVal = getNestedValue(b, sortConfig.key);

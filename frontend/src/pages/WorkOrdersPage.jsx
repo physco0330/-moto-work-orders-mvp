@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
@@ -97,7 +97,7 @@ function WorkOrdersPage() {
     setSearchParams(params);
   };
 
-  const sortedOrders = React.useMemo(() => {
+  const sortedOrders = useMemo(() => {
     if (!localSort.key) return orders;
     return [...orders].sort((a, b) => {
       let aVal = getNestedValue(a, localSort.key);
