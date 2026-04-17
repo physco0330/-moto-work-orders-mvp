@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
-const { Bike, Client, WorkOrder, WorkOrderItem, WorkOrderStatusHistory, User } = require('../models');
+const { Bike, Client, WorkOrder, WorkOrderItem, WorkOrderStatusHistory, User, ChecklistItem } = require('../models');
 const calculateTotal = require('../utils/calculateTotal');
 const { STATUS, isValidTransition, getAllowedTransitionsByRole, MECANICO_ALLOWED_STATUSES } = require('../utils/statusFlow');
 
@@ -77,6 +77,34 @@ const createWorkOrder = async (payload, user) => {
               unitValue: item.unitValue,
             },
             { transaction }
+          )
+        )
+      );
+    }
+
+    if (payload.ownItems && payload.ownItems.length > 0) {
+      await Promise.all(
+        payload.ownItems.map((desc) =>
+          WorkOrderItem.create(
+            {
+              workOrderId: workOrder.id,
+              type: 'PROPIO',
+              description: desc,
+              count: 1,
+              unitValue: 0,
+            },
+            { transaction }
+          )
+        )
+      );
+    }
+
+    if (payload.checklistItemIds && payload.checklistItemIds.length > 0) {
+      await Promise.all(
+        payload.checklistItemIds.map((checklistItemId) =>
+          sequelize.query(
+            `INSERT INTO "WorkOrderChecklistItems" (work_order_id, checklist_item_id, checked) VALUES (?, ?, true)`,
+            { replacements: [workOrder.id, checklistItemId], transaction }
           )
         )
       );
