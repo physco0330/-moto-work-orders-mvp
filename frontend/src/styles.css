@@ -235,27 +235,55 @@ input:focus, select:focus, textarea:focus {
 }
 label { display: grid; gap: 6px; color: #334155; }
 
-.table-wrap { overflow: hidden; padding: 0; }
+/* Estilos base de tablas */
+.table-wrap { 
+  overflow: hidden;
+  padding: 0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+}
+
 .table-wrap table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
 }
-th, td {
+
+.table-wrap th {
   text-align: left;
-  padding: 16px 18px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-}
-th {
+  padding: 16px 20px;
   color: #64748b;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
 }
-tbody tr { transition: background 0.15s ease; }
-tbody tr:hover { background: rgba(37, 99, 235, 0.04); }
-tbody tr:last-child td { border-bottom: 0; }
+
+.table-wrap td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.table-wrap tbody tr { 
+  transition: background 0.15s ease; 
+}
+
+.table-wrap tbody tr:hover { 
+  background: #f8fafc; 
+}
+
+.table-wrap tbody tr:last-child td { 
+  border-bottom: none; 
+}
+
+/* Contenedor de tabla con scroll en móvil */
+.table-scroll-wrapper {
+  overflow-x: auto;
+}
 
 .pagination {
   display: flex;
@@ -505,9 +533,13 @@ tbody tr:last-child td { border-bottom: 0; }
 .main-content {
   flex: 1;
   margin-left: 260px;
-  padding: 24px;
+  padding: 24px 32px;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+.main-content > * {
+  max-width: 1400px;
 }
 
 /* Dashboard */
@@ -967,6 +999,7 @@ tbody tr:last-child td { border-bottom: 0; }
   padding: 32px;
   background: #f8fafc;
   min-height: calc(100vh - 40px);
+  max-width: 1400px;
 }
 
 /* FAB Button - Top */
@@ -1975,7 +2008,49 @@ tbody tr:last-child td { border-bottom: 0; }
   font-size: 28px;
 }
 
-@media (max-width: 1200px) {
+/* Estilos de tablas mejorados para desktop */
+.table-wrap {
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrap th {
+  background: #f8fafc;
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.table-wrap td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.table-wrap tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table-wrap tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
 
 @media (max-width: 1200px) {
   .stats-grid-new {
@@ -2003,7 +2078,7 @@ tbody tr:last-child td { border-bottom: 0; }
   }
 }
 
-/* Modales mejorados */
+/* Modales mejorados - funcionan en todas las pantallas */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -2020,11 +2095,12 @@ tbody tr:last-child td { border-bottom: 0; }
   background: #fff;
   border-radius: 16px;
   width: 100%;
-  max-width: 500px;
+  max-width: 560px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: modalSlideIn 0.3s ease;
+  margin: auto;
 }
 
 @keyframes modalSlideIn {

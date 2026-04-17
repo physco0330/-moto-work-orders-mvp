@@ -69,7 +69,8 @@ function OrdersByStatusPage({ status, type }) {
       let param = {};
       if (status) param.status = STATUS_MAP[status];
       const { data } = await api.get('/work-orders', { params: { ...param, pageSize: 50 } });
-      setOrders(data.data || []);
+      const ordersData = data?.data || data;
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
       setError('');
     } catch (e) {
       setError(e.response?.data?.message || 'Error cargando órdenes');
