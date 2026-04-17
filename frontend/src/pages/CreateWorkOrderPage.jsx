@@ -30,7 +30,7 @@ function CreateWorkOrderPage() {
           api.get('/checklist-items'),
         ]);
         setPilotos(clientsRes.data.data || clientsRes.data);
-        setSystemItems(itemsRes.data || []);
+        setSystemItems(Array.isArray(itemsRes.data) ? itemsRes.data : (itemsRes.data?.data || []));
       } catch (e) {
         console.error('Error cargando datos:', e);
       }
