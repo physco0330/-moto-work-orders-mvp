@@ -9,6 +9,7 @@ const Client = sequelize.define(
     name: { type: DataTypes.STRING(120), allowNull: false },
     phone: { type: DataTypes.STRING(40), allowNull: false },
     email: { type: DataTypes.STRING(180), allowNull: true, validate: { isEmail: true } },
+    active: { type: DataTypes.BOOLEAN, defaultValue: true },
   },
   {
     tableName: 'clients',

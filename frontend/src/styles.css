@@ -849,6 +849,15 @@ label { display: grid; gap: 6px; color: #334155; }
     color: #1f2937;
   }
   
+  .page-hero {
+    padding-left: 70px;
+    padding-top: 10px;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
   .sidebar-overlay {
     position: fixed;
     inset: 0;

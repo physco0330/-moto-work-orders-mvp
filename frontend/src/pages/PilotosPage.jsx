@@ -75,6 +75,20 @@ function PilotosPage() {
     }
   };
 
+  const handleToggleActive = async (pilot) => {
+    setLoadingAction(pilot.id);
+    try {
+      const newActive = !pilot.active;
+      await api.put(`/clients/${pilot.id}`, { active: newActive });
+      setPilotos(pilotos.map(p => p.id === pilot.id ? { ...p, active: newActive } : p));
+      success(newActive ? `"${pilot.name}" activado` : `"${pilot.name}" desactivado`);
+    } catch (e) {
+      showError(e.response?.data?.message || 'Error actualizando');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newPilot.name.trim() || !newPilot.phone.trim()) return;
@@ -144,15 +158,35 @@ function PilotosPage() {
                     <span 
                       className="badge" 
                       style={{ 
-                        backgroundColor: '#22c55e',
+                        backgroundColor: p.active ? '#22c55e' : '#9ca3af',
                         color: '#fff'
                       }}
                     >
-                      Activo
+                      {p.active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td>
                     <div className="action-buttons">
+                      <button 
+                        className="ghost small icon-btn" 
+                        onClick={() => handleToggleActive(p)}
+                        disabled={loadingAction === p.id}
+                        title={p.active ? 'Desactivar' : 'Activar'}
+                        style={{ color: p.active ? '#f59e0b' : '#22c55e' }}
+                      >
+                        {loadingAction === p.id ? (
+                          <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
+                        ) : p.active ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </button>
                       <button 
                         className="ghost small icon-btn" 
                         onClick={() => navigate(`/pilotos/edit/${p.id}`)}

@@ -24,11 +24,22 @@ const searchClients = async (search = '') => {
 const getClientById = async (id) => {
   const client = await Client.findByPk(id, { include: [{ model: Bike, as: 'bikes' }] });
   if (!client) {
-    const error = new Error('Cliente no encontrado');
+    const error = new Error('Piloto no encontrado');
     error.statusCode = 404;
     throw error;
   }
   return client;
 };
 
-module.exports = { createClient, searchClients, getClientById };
+const updateClient = async (id, data) => {
+  const client = await Client.findByPk(id);
+  if (!client) {
+    const error = new Error('Piloto no encontrado');
+    error.statusCode = 404;
+    throw error;
+  }
+  await client.update(data);
+  return client;
+};
+
+module.exports = { createClient, searchClients, getClientById, updateClient };
