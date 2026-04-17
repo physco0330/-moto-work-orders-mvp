@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
@@ -96,23 +96,16 @@ function WorkOrdersPage() {
     setSearchParams(params);
   };
 
-  const sortedOrders = useMemo(() => {
-    if (!localSort.key) return orders;
-    return [...orders].sort((a, b) => {
-      let aVal = getNestedValue(a, localSort.key);
-      let bVal = getNestedValue(b, localSort.key);
-      if (aVal === null || aVal === undefined) aVal = '';
-      if (bVal === null || bVal === undefined) bVal = '';
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return localSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
-      }
-      const aStr = String(aVal).toLowerCase();
-      const bStr = String(bVal).toLowerCase();
-      if (aStr < bStr) return localSort.direction === 'asc' ? -1 : 1;
-      if (aStr > bStr) return localSort.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [orders, localSort]);
+  const sortedOrders = localSort.key
+    ? [...orders].sort((a, b) => {
+        let aVal = getNestedValue(a, localSort.key) ?? '';
+        let bVal = getNestedValue(b, localSort.key) ?? '';
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return localSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return String(aVal).toLowerCase().localeCompare(String(bVal).toLowerCase()) * (localSort.direction === 'asc' ? 1 : -1);
+      })
+    : orders;
 
   const columns = [
     { key: 'id', label: 'ID', sortKey: 'id' },

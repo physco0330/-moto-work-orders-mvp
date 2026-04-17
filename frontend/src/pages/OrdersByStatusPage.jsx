@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
@@ -75,22 +75,16 @@ function OrdersByStatusPage({ status, type }) {
     setSortConfig(config);
   };
 
-  const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => {
-      let aVal = getNestedValue(a, sortConfig.key);
-      let bVal = getNestedValue(b, sortConfig.key);
-      if (aVal === null || aVal === undefined) aVal = '';
-      if (bVal === null || bVal === undefined) bVal = '';
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-      }
-      const aStr = String(aVal).toLowerCase();
-      const bStr = String(bVal).toLowerCase();
-      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [orders, sortConfig]);
+  const sortedOrders = sortConfig.key
+    ? [...orders].sort((a, b) => {
+        let aVal = getNestedValue(a, sortConfig.key) ?? '';
+        let bVal = getNestedValue(b, sortConfig.key) ?? '';
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        return String(aVal).toLowerCase().localeCompare(String(bVal).toLowerCase()) * (sortConfig.direction === 'asc' ? 1 : -1);
+      })
+    : orders;
 
   return (
     <div className="content-grid">

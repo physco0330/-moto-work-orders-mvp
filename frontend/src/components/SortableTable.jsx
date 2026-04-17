@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 
 function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
