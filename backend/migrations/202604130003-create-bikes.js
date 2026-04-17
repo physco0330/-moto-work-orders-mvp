@@ -4,7 +4,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('bikes', {
       id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
-      plate: { type: Sequelize.STRING(30), allowNull: false, unique: true },
+      plate: { type: Sequelize.STRING(30), allowNull: true },
       brand: { type: Sequelize.STRING(120), allowNull: false },
       model: { type: Sequelize.STRING(120), allowNull: false },
       cylinder: { type: Sequelize.INTEGER, allowNull: true },
