@@ -10,6 +10,5 @@ router.use(auth);
 router.post('/', validate(clientCreateSchema), clientController.createClient);
 router.get('/', validate(clientSearchSchema, 'query'), clientController.searchClients);
 router.get('/:id', validate(clientIdParamSchema, 'params'), clientController.getClientById);
-router.put('/:id', validate(clientIdParamSchema, 'params'), clientController.updateClient);
 
 module.exports = router;
