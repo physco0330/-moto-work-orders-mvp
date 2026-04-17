@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 
 function LoginPage() {
   const [email, setEmail] = useState('admin@taller.com');
   const [password, setPassword] = useState('Admin12345!');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { error: showError } = useToast();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError('');
     setLoading(true);
     try {
       await login(email, password);
       navigate('/work-orders', { replace: true });
     } catch (e) {
-      setError(e.response?.data?.message || 'No se pudo iniciar sesion');
+      showError(e.response?.data?.message || 'No se pudo iniciar sesión');
     } finally {
       setLoading(false);
     }
@@ -80,9 +80,9 @@ function LoginPage() {
               </label>
             </div>
 
-            {error && <div className="alert error" style={{ marginTop: 14 }}>{error}</div>}
-
-            <button style={{ width: '100%', marginTop: 16 }} disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button>
+            <button style={{ width: '100%', marginTop: 16 }} disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
           </form>
         </section>
       </div>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 function SortableTh({ label, sortKey, currentSort, onSort }) {
   const direction = currentSort.key === sortKey ? currentSort.direction : null;
@@ -30,49 +32,63 @@ function SortableTh({ label, sortKey, currentSort, onSort }) {
 }
 
 function PilotosPage() {
+  const { success, error: showError } = useToast();
   const [pilotos, setPilotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [newPilot, setNewPilot] = useState({ name: '', phone: '', email: '' });
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const [loadingAction, setLoadingAction] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const { data } = await api.get('/clients');
-        setPilotos(data.data || data);
-      } catch (e) {
-        setError(e.response?.data?.message || 'Error cargando pilotos');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadData();
   }, []);
 
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/clients');
+      setPilotos(data.data || data);
+      setError('');
+    } catch (e) {
+      setError(e.response?.data?.message || 'Error cargando pilotos');
+      showError('Error al cargar pilotos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar piloto?')) return;
+    setLoadingAction(id);
     try {
       await api.delete(`/clients/${id}`);
       setPilotos(pilotos.filter(p => p.id !== id));
+      setDeleteConfirm(null);
+      success('Piloto eliminado');
     } catch (e) {
-      alert(e.response?.data?.message || 'Error eliminando');
+      showError(e.response?.data?.message || 'Error eliminando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newPilot.name.trim() || !newPilot.phone.trim()) return;
+    setLoadingAction('creating');
     try {
       const { data } = await api.post('/clients', newPilot);
       setPilotos([...pilotos, data.data || data]);
       setNewPilot({ name: '', phone: '', email: '' });
       setShowModal(false);
+      success('Piloto creado exitosamente');
     } catch (e) {
-      alert(e.response?.data?.message || 'Error creando');
+      showError(e.response?.data?.message || 'Error creando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -149,13 +165,18 @@ function PilotosPage() {
                       </button>
                       <button 
                         className="danger small icon-btn" 
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => setDeleteConfirm({ id: p.id, name: p.name })}
+                        disabled={loadingAction === p.id}
                         title="Eliminar"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"/>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        </svg>
+                        {loadingAction === p.id ? (
+                          <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        )}
                       </button>
                     </div>
                   </td>
@@ -195,12 +216,23 @@ function PilotosPage() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-                <button type="submit" className="button">Crear Piloto</button>
+                <button type="submit" className="button" disabled={loadingAction === 'creating'}>
+                  {loadingAction === 'creating' ? 'Creando...' : 'Crear Piloto'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm.id)}
+        onCancel={() => setDeleteConfirm(null)}
+        title="¿Eliminar piloto?"
+        message={`¿Estás seguro de eliminar a "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+      />
     </div>
   );
 }

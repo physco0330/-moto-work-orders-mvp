@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { useToast } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 function SortableTh({ label, sortKey, currentSort, onSort }) {
   const direction = currentSort.key === sortKey ? currentSort.direction : null;
@@ -29,6 +31,7 @@ function SortableTh({ label, sortKey, currentSort, onSort }) {
 }
 
 function ItemsPage() {
+  const { success, error: showError } = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,41 +39,54 @@ function ItemsPage() {
   const [newItem, setNewItem] = useState({ name: '' });
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
   const [viewItem, setViewItem] = useState(null);
+  const [loadingAction, setLoadingAction] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const { data } = await api.get('/checklist-items');
-        setItems(data.data || data);
-      } catch (e) {
-        setError(e.response?.data?.message || 'Error cargando items');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadData();
   }, []);
 
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/checklist-items');
+      setItems(data.data || data);
+      setError('');
+    } catch (e) {
+      setError(e.response?.data?.message || 'Error cargando items');
+      showError('Error al cargar items');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleToggleActive = async (item) => {
+    setLoadingAction(item.id);
     try {
       await api.put(`/checklist-items/${item.id}`, { active: !item.active });
       setItems(items.map(i => i.id === item.id ? { ...i, active: !i.active } : i));
+      success(item.active ? ` "${item.name}" desactivado` : ` "${item.name}" activado`);
     } catch (e) {
-      alert(e.response?.data?.message || 'Error actualizando');
+      showError(e.response?.data?.message || 'Error actualizando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newItem.name.trim()) return;
+    setLoadingAction('creating');
     try {
       const { data } = await api.post('/checklist-items', { name: newItem.name });
       setItems([...items, data.data || data]);
       setNewItem({ name: '' });
       setShowModal(false);
+      success('Ítem creado exitosamente');
     } catch (e) {
-      alert(e.response?.data?.message || 'Error creando');
+      showError(e.response?.data?.message || 'Error creando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -144,10 +160,13 @@ function ItemsPage() {
                       <button 
                         className="ghost small icon-btn" 
                         onClick={() => handleToggleActive(item)}
+                        disabled={loadingAction === item.id}
                         title={item.active ? 'Desactivar' : 'Activar'}
                         style={{ color: item.active ? '#f59e0b' : '#22c55e' }}
                       >
-                        {item.active ? (
+                        {loadingAction === item.id ? (
+                          <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
+                        ) : item.active ? (
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="12" cy="12" r="10"/>
                             <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
@@ -193,7 +212,9 @@ function ItemsPage() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-                <button type="submit" className="button">Crear Ítem</button>
+                <button type="submit" className="button" disabled={loadingAction === 'creating'}>
+                  {loadingAction === 'creating' ? 'Creando...' : 'Crear Ítem'}
+                </button>
               </div>
             </form>
           </div>

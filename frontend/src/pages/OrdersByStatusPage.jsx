@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
+import { useToast } from '../components/Toast';
 
 function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
@@ -49,50 +50,58 @@ function SortableTh({ label, sortKey, currentSort, onSort }) {
 }
 
 function OrdersByStatusPage({ status, type }) {
+  const { success, error: showError } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
   const [viewOrder, setViewOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [loadingAction, setLoadingAction] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        let param = {};
-        if (status) param.status = STATUS_MAP[status];
-        const { data } = await api.get('/work-orders', { params: { ...param, pageSize: 50 } });
-        setOrders(data.data || []);
-      } catch (e) {
-        setError(e.response?.data?.message || 'Error cargando órdenes');
-      } finally {
-        setLoading(false);
-      }
-    };
     load();
   }, [status]);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      let param = {};
+      if (status) param.status = STATUS_MAP[status];
+      const { data } = await api.get('/work-orders', { params: { ...param, pageSize: 50 } });
+      setOrders(data.data || []);
+      setError('');
+    } catch (e) {
+      setError(e.response?.data?.message || 'Error cargando órdenes');
+      showError('Error al cargar órdenes');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSort = (config) => {
     setSortConfig(config);
   };
 
   const handleView = async (order) => {
+    setLoadingAction('view');
     try {
       const { data } = await api.get(`/work-orders/${order.id}`);
       setOrderDetails(data);
       setViewOrder(order);
     } catch (e) {
-      alert('Error cargando detalles');
+      showError('Error cargando detalles');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const handleEmail = (order) => {
-    alert(`Enviando reporte por correo a ${order.bike?.client?.email || 'cliente'}`);
+    success(`Enviando reporte por correo a ${order.bike?.client?.email || 'cliente'}`);
   };
 
   const handlePDF = (order) => {
-    alert(`Generando PDF para orden #${order.id}`);
+    success(`Generando PDF para orden #${order.id}`);
   };
 
   const formatDate = (dateStr) => {
@@ -160,12 +169,17 @@ function OrdersByStatusPage({ status, type }) {
                         <button 
                           className="ghost small icon-btn" 
                           onClick={() => handleView(order)}
+                          disabled={loadingAction === 'view'}
                           title="Ver"
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
+                          {loadingAction === 'view' ? (
+                            <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          )}
                         </button>
                         <button 
                           className="ghost small icon-btn" 

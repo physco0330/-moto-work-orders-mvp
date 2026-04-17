@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { useToast } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
@@ -33,6 +35,7 @@ function SortableTh({ label, sortKey, currentSort, onSort }) {
 }
 
 function MotocicletasPage() {
+  const { success, error: showError } = useToast();
   const [motos, setMotos] = useState([]);
   const [pilotos, setPilotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +45,8 @@ function MotocicletasPage() {
   const [filterPilot, setFilterPilot] = useState('');
   const [form, setForm] = useState({ model: '', year: '', hours: '', clientId: '' });
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const [loadingAction, setLoadingAction] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -56,8 +61,10 @@ function MotocicletasPage() {
       ]);
       setMotos(bikesRes.data.data || bikesRes.data);
       setPilotos(clientsRes.data.data || clientsRes.data);
+      setError('');
     } catch (e) {
       setError(e.response?.data?.message || 'Error cargando');
+      showError('Error al cargar datos');
     } finally {
       setLoading(false);
     }
@@ -81,28 +88,37 @@ function MotocicletasPage() {
   };
 
   const handleSave = async () => {
+    setLoadingAction('saving');
     try {
       if (editando) {
         await api.put(`/bikes/${editando.id}`, form);
         setMotos(motos.map(m => m.id === editando.id ? { ...m, ...form } : m));
+        success('Motocicleta actualizada');
       } else {
         const { data } = await api.post('/bikes', form);
         setMotos([...motos, data.data || data]);
+        success('Motocicleta creada');
       }
       setShowModal(false);
       setEditando(null);
     } catch (e) {
-      alert(e.response?.data?.message || 'Error guardando');
+      showError(e.response?.data?.message || 'Error guardando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar moto?')) return;
+    setLoadingAction(id);
     try {
       await api.delete(`/bikes/${id}`);
       setMotos(motos.filter(m => m.id !== id));
+      setDeleteConfirm(null);
+      success('Motocicleta eliminada');
     } catch (e) {
-      alert(e.response?.data?.message || 'Error eliminando');
+      showError(e.response?.data?.message || 'Error eliminando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -186,13 +202,18 @@ function MotocicletasPage() {
                       </button>
                       <button 
                         className="danger small icon-btn" 
-                        onClick={() => handleDelete(m.id)}
+                        onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}
+                        disabled={loadingAction === m.id}
                         title="Eliminar"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"/>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        </svg>
+                        {loadingAction === m.id ? (
+                          <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        )}
                       </button>
                     </div>
                   </td>
@@ -244,11 +265,22 @@ function MotocicletasPage() {
             </div>
             <div className="modal-footer">
               <button className="ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className="button" onClick={handleSave}>Guardar</button>
+              <button className="button" onClick={handleSave} disabled={loadingAction === 'saving'}>
+                {loadingAction === 'saving' ? 'Guardando...' : 'Guardar'}
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm.id)}
+        onCancel={() => setDeleteConfirm(null)}
+        title="¿Eliminar motocicleta?"
+        message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+      />
     </div>
   );
 }

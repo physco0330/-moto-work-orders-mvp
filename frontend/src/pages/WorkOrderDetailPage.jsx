@@ -3,9 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 function WorkOrderDetailPage() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const { success, error: showError, info } = useToast();
+  
   const [order, setOrder] = useState(null);
   const [history, setHistory] = useState([]);
   const [allowed, setAllowed] = useState([]);
@@ -22,7 +27,8 @@ function WorkOrderDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [newOwnItem, setNewOwnItem] = useState('');
-  const { user } = useAuth();
+  const [loadingAction, setLoadingAction] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -51,57 +57,76 @@ function WorkOrderDetailPage() {
       });
     } catch (e) {
       setError(e.response?.data?.message || 'No se pudo cargar la orden');
+      showError('Error al cargar la orden');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, [id, historyMeta.page, historyMeta.pageSize, historyFilters.userId, historyFilters.startDate, historyFilters.endDate]);
+  useEffect(() => { load(); }, [id, historyMeta.page, historyFilters.userId, historyFilters.startDate, historyFilters.endDate]);
 
   const changeStatus = async (toStatus) => {
+    setLoadingAction('status');
+    setActionError('');
     try {
-      setActionError('');
       await api.patch(`/work-orders/${id}/status`, { toStatus, note });
       setNote('');
+      success(`Estado cambiado a ${toStatus}`);
       await load();
     } catch (e) {
       setActionError(e.response?.data?.message || 'No se pudo cambiar el estado');
+      showError(e.response?.data?.message || 'Error al cambiar estado');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const handleSaveEdit = async () => {
+    setLoadingAction('edit');
     try {
       await api.patch(`/work-orders/${id}`, editForm);
       setShowEditModal(false);
+      success('Servicio actualizado');
       await load();
     } catch (e) {
-      alert(e.response?.data?.message || 'Error guardando');
+      showError(e.response?.data?.message || 'Error guardando');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const toggleChecklistItem = async (itemId, checked) => {
+    setLoadingAction(itemId);
     try {
       await api.post(`/work-orders/${id}/checklist`, { checklistItemId: itemId, checked });
+      success(checked ? 'Item marcado' : 'Item desmarcado');
       await load();
     } catch (e) {
-      alert(e.response?.data?.message || 'Error actualizando checklist');
+      showError(e.response?.data?.message || 'Error actualizando checklist');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const addOwnItem = async () => {
     if (!newOwnItem.trim()) return;
+    setLoadingAction('addOwnItem');
     try {
       const item = { description: newOwnItem, type: 'PROPIO', count: 1, unitValue: 0 };
       await api.post(`/work-orders/${id}/items`, item);
       setNewOwnItem('');
+      success('Item agregado');
       await load();
     } catch (e) {
-      alert(e.response?.data?.message || 'Error agregando item');
+      showError(e.response?.data?.message || 'Error agregando item');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const addItem = async (event) => {
     event.preventDefault();
+    setLoadingAction('addItem');
     try {
       setActionError('');
       await api.post(`/work-orders/${id}/items`, {
@@ -110,20 +135,42 @@ function WorkOrderDetailPage() {
         unitValue: Number(newItem.unitValue),
       });
       setNewItem({ type: 'REPUESTO', description: '', count: 1, unitValue: 0 });
+      success('Item agregado');
       await load();
     } catch (e) {
       setActionError(e.response?.data?.message || 'No se pudo añadir el item');
+      showError(e.response?.data?.message || 'Error');
+    } finally {
+      setLoadingAction(null);
     }
   };
 
   const removeItem = async (itemId) => {
+    setLoadingAction('removeItem');
     try {
       setActionError('');
       await api.delete(`/work-orders/items/${itemId}`);
+      success('Item eliminado');
       await load();
     } catch (e) {
       setActionError(e.response?.data?.message || 'No se pudo eliminar el item');
+      showError(e.response?.data?.message || 'Error');
+    } finally {
+      setLoadingAction(null);
     }
+  };
+
+  const confirmDeleteItem = (itemId, itemName) => {
+    setDeleteConfirm({ type: 'item', id: itemId, name: itemName });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+    
+    if (deleteConfirm.type === 'item') {
+      await removeItem(deleteConfirm.id);
+    }
+    setDeleteConfirm(null);
   };
 
   if (loading) return <div className="card">Cargando detalle...</div>;
@@ -175,7 +222,13 @@ function WorkOrderDetailPage() {
 
       {isPendiente && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <button className="button" onClick={() => setShowEditModal(true)}>Editar Servicio</button>
+          <button 
+            className="button" 
+            onClick={() => setShowEditModal(true)}
+            disabled={loadingAction === 'edit'}
+          >
+            {loadingAction === 'edit' ? 'Guardando...' : 'Editar Servicio'}
+          </button>
         </div>
       )}
 
@@ -191,8 +244,9 @@ function WorkOrderDetailPage() {
                     type="checkbox"
                     checked={checkedItem?.checked || false}
                     onChange={(e) => toggleChecklistItem(item.id, e.target.checked)}
+                    disabled={loadingAction === item.id}
                   />
-                  <span>{item.name}</span>
+                  <span>{loadingAction === item.id ? 'Guardando...' : item.name}</span>
                 </label>
               );
             })}
@@ -208,14 +262,27 @@ function WorkOrderDetailPage() {
               value={newOwnItem}
               onChange={(e) => setNewOwnItem(e.target.value)}
               placeholder="Nombre del ítem"
+              disabled={loadingAction === 'addOwnItem'}
             />
-            <button type="button" onClick={addOwnItem}>Agregar</button>
+            <button 
+              type="button" 
+              onClick={addOwnItem}
+              disabled={loadingAction === 'addOwnItem' || !newOwnItem.trim()}
+            >
+              {loadingAction === 'addOwnItem' ? '...' : 'Agregar'}
+            </button>
           </div>
           <div className="own-items-list">
             {order.items?.filter(i => i.type === 'PROPIO').map((item) => (
               <div key={item.id} className="own-item-row">
                 <span>{item.description}</span>
-                <button className="danger small" onClick={() => removeItem(item.id)}>Eliminar</button>
+                <button 
+                  className="danger small" 
+                  onClick={() => confirmDeleteItem(item.id, item.description)}
+                  disabled={loadingAction === 'removeItem'}
+                >
+                  {loadingAction === 'removeItem' ? '...' : 'Eliminar'}
+                </button>
               </div>
             ))}
           </div>
@@ -258,7 +325,14 @@ function WorkOrderDetailPage() {
             </div>
             <div className="inline-actions" style={{ marginBottom: 12 }}>
               {allowed.map((status) => (
-                <button key={status} type="button" onClick={() => changeStatus(status)}>{status}</button>
+                <button 
+                  key={status} 
+                  type="button" 
+                  onClick={() => changeStatus(status)}
+                  disabled={loadingAction === 'status'}
+                >
+                  {loadingAction === 'status' ? '...' : status}
+                </button>
               ))}
             </div>
             <label>
@@ -279,16 +353,43 @@ function WorkOrderDetailPage() {
             </div>
 
             <form className="form-stack" onSubmit={addItem} style={{ marginBottom: 16 }}>
-              <select value={newItem.type} onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}>
+              <select 
+                value={newItem.type} 
+                onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
+                disabled={loadingAction === 'addItem'}
+              >
                 <option value="REPUESTO">Repuesto</option>
                 <option value="MANO_OBRA">Mano de obra</option>
               </select>
-              <input value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} placeholder="Descripción" required />
+              <input 
+                value={newItem.description} 
+                onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} 
+                placeholder="Descripción" 
+                required 
+                disabled={loadingAction === 'addItem'}
+              />
               <div className="grid two">
-                <input type="number" min="1" value={newItem.count} onChange={(e) => setNewItem({ ...newItem, count: e.target.value })} placeholder="Cantidad" />
-                <input type="number" min="0" step="0.01" value={newItem.unitValue} onChange={(e) => setNewItem({ ...newItem, unitValue: e.target.value })} placeholder="Valor" />
+                <input 
+                  type="number" 
+                  min="1" 
+                  value={newItem.count} 
+                  onChange={(e) => setNewItem({ ...newItem, count: e.target.value })} 
+                  placeholder="Cantidad"
+                  disabled={loadingAction === 'addItem'}
+                />
+                <input 
+                  type="number" 
+                  min="0" 
+                  step="0.01" 
+                  value={newItem.unitValue} 
+                  onChange={(e) => setNewItem({ ...newItem, unitValue: e.target.value })} 
+                  placeholder="Valor"
+                  disabled={loadingAction === 'addItem'}
+                />
               </div>
-              <button>Añadir item</button>
+              <button type="submit" disabled={loadingAction === 'addItem'}>
+                {loadingAction === 'addItem' ? 'Añadiendo...' : 'Añadir item'}
+              </button>
             </form>
 
             <div className="stack">
@@ -299,7 +400,14 @@ function WorkOrderDetailPage() {
                     <div className="muted">{item.type} x{item.count} - ${Number(item.unitValue).toFixed(2)}</div>
                   </div>
                   {user?.role === 'ADMIN' && (
-                    <button className="danger" type="button" onClick={() => removeItem(item.id)}>Eliminar</button>
+                    <button 
+                      className="danger" 
+                      type="button" 
+                      onClick={() => confirmDeleteItem(item.id, item.description)}
+                      disabled={loadingAction === 'removeItem'}
+                    >
+                      {loadingAction === 'removeItem' ? '...' : 'Eliminar'}
+                    </button>
                   )}
                 </div>
               ))}
@@ -354,9 +462,21 @@ function WorkOrderDetailPage() {
               ))}
             </div>
             <div className="pagination">
-              <button type="button" disabled={historyMeta.page <= 1} onClick={() => setHistoryMeta((current) => ({ ...current, page: current.page - 1 }))}>Anterior</button>
+              <button 
+                type="button" 
+                disabled={historyMeta.page <= 1} 
+                onClick={() => setHistoryMeta((current) => ({ ...current, page: current.page - 1 }))}
+              >
+                Anterior
+              </button>
               <span>Página {historyMeta.page} de {historyMeta.totalPages || 1}</span>
-              <button type="button" disabled={historyMeta.page >= (historyMeta.totalPages || 1)} onClick={() => setHistoryMeta((current) => ({ ...current, page: current.page + 1 }))}>Siguiente</button>
+              <button 
+                type="button" 
+                disabled={historyMeta.page >= (historyMeta.totalPages || 1)} 
+                onClick={() => setHistoryMeta((current) => ({ ...current, page: current.page + 1 }))}
+              >
+                Siguiente
+              </button>
             </div>
           </div>
         </div>
@@ -392,12 +512,23 @@ function WorkOrderDetailPage() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="ghost" onClick={() => setShowEditModal(false)}>Cancelar</button>
-              <button className="button" onClick={handleSaveEdit}>Guardar</button>
+              <button className="ghost" onClick={() => setShowEditModal(false)} disabled={loadingAction === 'edit'}>Cancelar</button>
+              <button className="button" onClick={handleSaveEdit} disabled={loadingAction === 'edit'}>
+                {loadingAction === 'edit' ? 'Guardando...' : 'Guardar'}
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteConfirm(null)}
+        title={`¿Eliminar ${deleteConfirm?.type === 'item' ? 'item' : 'registro'}?`}
+        message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+      />
     </div>
   );
 }
