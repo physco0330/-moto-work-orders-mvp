@@ -35,6 +35,7 @@ function ItemsPage() {
   const [showModal, setShowModal] = useState(false);
   const [newItem, setNewItem] = useState({ name: '' });
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const [viewItem, setViewItem] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -117,11 +118,45 @@ function ItemsPage() {
                 <tr key={item.id}>
                   <td>{item.id}</td>
                   <td>{item.name}</td>
-                  <td><span className="badge">{item.active ? 'Activo' : 'Inactivo'}</span></td>
+                  <td>
+                    <span 
+                      className="badge" 
+                      style={{ 
+                        backgroundColor: item.active ? '#22c55e' : '#9ca3af',
+                        color: '#fff'
+                      }}
+                    >
+                      {item.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
                   <td>
                     <div className="action-buttons">
-                      <button className="ghost small" onClick={() => handleToggleActive(item)}>
-                        {item.active ? 'Desactivar' : 'Activar'}
+                      <button 
+                        className="ghost small icon-btn" 
+                        onClick={() => setViewItem(item)}
+                        title="Ver"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </button>
+                      <button 
+                        className="ghost small icon-btn" 
+                        onClick={() => handleToggleActive(item)}
+                        title={item.active ? 'Desactivar' : 'Activar'}
+                        style={{ color: item.active ? '#f59e0b' : '#22c55e' }}
+                      >
+                        {item.active ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
                       </button>
                     </div>
                   </td>
@@ -161,6 +196,38 @@ function ItemsPage() {
                 <button type="submit" className="button">Crear Ítem</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewItem && (
+        <div className="modal-overlay" onClick={() => setViewItem(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Ítem del Sistema</h3>
+              <button className="modal-close" onClick={() => setViewItem(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <span 
+                  className="badge" 
+                  style={{ 
+                    backgroundColor: viewItem.active ? '#22c55e' : '#9ca3af',
+                    color: '#fff'
+                  }}
+                >
+                  {viewItem.active ? 'Activo' : 'Inactivo'}
+                </span>
+                <strong>{viewItem.name}</strong>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="checkbox" checked={viewItem.active} readOnly />
+                <label style={{ margin: 0 }}>{viewItem.name}</label>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="ghost" onClick={() => setViewItem(null)}>Cerrar</button>
+            </div>
           </div>
         </div>
       )}

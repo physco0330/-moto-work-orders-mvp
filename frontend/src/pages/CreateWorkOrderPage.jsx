@@ -154,7 +154,7 @@ return (
           
           {!bike && (
             <>
-              <label>Cliente
+              {/* <label>Cliente
                 <input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} placeholder="Nombre" />
               </label>
               <label>Telefono
@@ -171,7 +171,7 @@ return (
               </label>
               <label>Cilindraje
                 <input type="number" value={bikeData.cylinder} onChange={(e) => setBikeData({ ...bikeData, cylinder: e.target.value })} placeholder="Cilindraje" />
-              </label>
+              </label> */}
             </>
           )}
 

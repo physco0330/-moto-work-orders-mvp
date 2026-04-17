@@ -571,6 +571,15 @@ tbody tr:last-child td { border-bottom: 0; }
 
 .action-buttons { display: flex; gap: 6px; }
 
+.icon-btn {
+  padding: 8px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+}
+
 .activity-list { display: flex; flex-direction: column; }
 .activity-item {
   display: flex;
