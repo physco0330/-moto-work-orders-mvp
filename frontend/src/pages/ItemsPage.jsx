@@ -5,6 +5,8 @@ function ItemsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '' });
 
   useEffect(() => {
     const load = async () => {
@@ -30,6 +32,19 @@ function ItemsPage() {
     }
   };
 
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!newItem.name.trim()) return;
+    try {
+      const { data } = await api.post('/checklist-items', { name: newItem.name });
+      setItems([...items, data.data || data]);
+      setNewItem({ name: '' });
+      setShowModal(false);
+    } catch (e) {
+      alert(e.response?.data?.message || 'Error creando');
+    }
+  };
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -37,6 +52,7 @@ function ItemsPage() {
           <h1 className="page-title">Ítems</h1>
           <p className="page-description">Lista de verificación para servicios del taller.</p>
         </div>
+        <button className="button" onClick={() => setShowModal(true)}>+ Nuevo Ítem</button>
       </div>
 
       {loading && <div className="card">Cargando...</div>}
@@ -73,6 +89,36 @@ function ItemsPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nuevo Ítem</h3>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleCreate}>
+              <div className="modal-body">
+                <div className="form-stack">
+                  <div>
+                    <label>Nombre del ítem</label>
+                    <input 
+                      value={newItem.name} 
+                      onChange={e => setNewItem({ name: e.target.value })} 
+                      placeholder="Ej: Revisión de motor"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="ghost" onClick={() => setShowModal(false)}>Cancelar</button>
+                <button type="submit" className="button">Crear Ítem</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
