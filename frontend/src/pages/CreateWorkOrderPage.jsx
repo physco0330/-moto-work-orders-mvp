@@ -2,16 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import SectionTitle from '../components/SectionTitle';
+import { useToast } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 function CreateWorkOrderPage() {
   const navigate = useNavigate();
+  const { success, error: showError } = useToast();
+  
   const [plateSearch, setPlateSearch] = useState('');
   const [bike, setBike] = useState(null);
   const [client, setClient] = useState({ name: '', phone: '', email: '' });
   const [bikeData, setBikeData] = useState({ plate: '', brand: '', model: '', cylinder: '' });
   const [faultDescription, setFaultDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const [pilotos, setPilotos] = useState([]);
   const [selectedPilotId, setSelectedPilotId] = useState('');
   const [pilotName, setPilotName] = useState('');
@@ -21,22 +24,27 @@ function CreateWorkOrderPage() {
   const [checklistItems, setChecklistItems] = useState([]);
   const [ownItems, setOwnItems] = useState([]);
   const [newOwnItem, setNewOwnItem] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
-    const loadInitial = async () => {
-      try {
-        const [clientsRes, itemsRes] = await Promise.all([
-          api.get('/clients'),
-          api.get('/checklist-items'),
-        ]);
-        setPilotos(clientsRes.data.data || clientsRes.data);
-        setSystemItems(Array.isArray(itemsRes.data) ? itemsRes.data : (itemsRes.data?.data || []));
-      } catch (e) {
-        console.error('Error cargando datos:', e);
-      }
-    };
     loadInitial();
   }, []);
+
+  const loadInitial = async () => {
+    setLoading(true);
+    try {
+      const [clientsRes, itemsRes] = await Promise.all([
+        api.get('/clients'),
+        api.get('/checklist-items'),
+      ]);
+      setPilotos(clientsRes.data.data || clientsRes.data);
+      setSystemItems(Array.isArray(itemsRes.data) ? itemsRes.data : (itemsRes.data?.data || []));
+    } catch (e) {
+      showError('Error al cargar datos');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleChecklistItem = (itemId) => {
     if (checklistItems.includes(itemId)) {
@@ -52,13 +60,20 @@ function CreateWorkOrderPage() {
     setNewOwnItem('');
   };
 
-  const removeOwnItem = (index) => {
-    setOwnItems(ownItems.filter((_, i) => i !== index));
+  const confirmRemoveOwnItem = (index, itemName) => {
+    setDeleteConfirm({ type: 'ownItem', index, name: itemName });
+  };
+
+  const removeOwnItem = () => {
+    if (!deleteConfirm) return;
+    setOwnItems(ownItems.filter((_, i) => i !== deleteConfirm.index));
+    setDeleteConfirm(null);
+    success('Item eliminado');
   };
 
   const findBike = async () => {
+    if (!plateSearch.trim()) return;
     setLoading(true);
-    setMessage('');
     try {
       const { data } = await api.get('/bikes', { params: { plate: plateSearch } });
       const found = data[0] || null;
@@ -75,11 +90,12 @@ function CreateWorkOrderPage() {
           model: found.model || '',
           cylinder: found.cylinder || '',
         });
+        success(`Moto encontrada: ${found.plate}`);
       } else {
-        setMessage('No se encontro la moto. Puedes registrarla manualmente.');
+        success('No se encontro la moto. Puedes registrarla manualmente.');
       }
     } catch (e) {
-      setMessage(e.response?.data?.message || 'No se pudo buscar la moto');
+      showError(e.response?.data?.message || 'No se pudo buscar la moto');
     } finally {
       setLoading(false);
     }
@@ -99,7 +115,6 @@ function CreateWorkOrderPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setMessage('');
     try {
       const payload = bike?.id
         ? { 
@@ -123,15 +138,16 @@ function CreateWorkOrderPage() {
           };
 
       const { data } = await api.post('/work-orders', payload);
+      success('Orden creada exitosamente');
       navigate(`/work-orders/${data.id}`);
     } catch (e) {
-      setMessage(e.response?.data?.message || 'No se pudo crear la orden');
+      showError(e.response?.data?.message || 'No se pudo crear la orden');
     } finally {
       setLoading(false);
     }
   };
 
-return (
+  return (
     <div>
       <SectionTitle title="Nuevo Servicio" subtitle="Completa el formulario de alistamiento o reparacion" />
 
@@ -146,37 +162,27 @@ return (
                 onChange={(e) => setPlateSearch(e.target.value)} 
                 placeholder="Ingresa la placa"
                 style={{ flex: 1 }}
+                disabled={loading}
               />
-              <button type="button" onClick={findBike} disabled={loading}>Buscar</button>
+              <button type="button" onClick={findBike} disabled={loading}>
+                {loading ? 'Buscando...' : 'Buscar'}
+              </button>
             </div>
           </label>
           {bike && <div className="alert success">Moto encontrada: {bike.plate} - {bike.client?.name}</div>}
           
+          {/* Formulario de cliente comentado - solo usar piloto existente
           {!bike && (
             <>
-              {/* <label>Cliente
+              <label>Cliente
                 <input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} placeholder="Nombre" />
               </label>
-              <label>Telefono
-                <input value={client.phone} onChange={(e) => setClient({ ...client, phone: e.target.value })} placeholder="Telefono" />
-              </label>
-              <label>Placa
-                <input value={bikeData.plate} onChange={(e) => setBikeData({ ...bikeData, plate: e.target.value })} placeholder="Placa" />
-              </label>
-              <label>Marca
-                <input value={bikeData.brand} onChange={(e) => setBikeData({ ...bikeData, brand: e.target.value })} placeholder="Marca" />
-              </label>
-              <label>Modelo
-                <input value={bikeData.model} onChange={(e) => setBikeData({ ...bikeData, model: e.target.value })} placeholder="Modelo" />
-              </label>
-              <label>Cilindraje
-                <input type="number" value={bikeData.cylinder} onChange={(e) => setBikeData({ ...bikeData, cylinder: e.target.value })} placeholder="Cilindraje" />
-              </label> */}
             </>
           )}
+          */}
 
           <label>Piloto *
-            <select value={selectedPilotId} onChange={handlePilotChange} required>
+            <select value={selectedPilotId} onChange={handlePilotChange} required disabled={loading}>
               <option value="">Seleccionar piloto...</option>
               {pilotos.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -184,7 +190,7 @@ return (
             </select>
           </label>
           <label>Horas de Uso
-            <input type="number" value={hoursRegistered} onChange={(e) => setHoursRegistered(e.target.value)} placeholder="Horas" />
+            <input type="number" value={hoursRegistered} onChange={(e) => setHoursRegistered(e.target.value)} placeholder="Horas" disabled={loading} />
           </label>
         </div>
       </div>
@@ -192,7 +198,7 @@ return (
       <div className="grid two">
         <div className="card">
           <h3>Tipo de Servicio</h3>
-          <select value={serviceType} onChange={(e) => setServiceType(e.target.value)} style={{ width: '100%' }}>
+          <select value={serviceType} onChange={(e) => setServiceType(e.target.value)} style={{ width: '100%' }} disabled={loading}>
             <option value="">Seleccionar tipo...</option>
             <option value="ALISTAMIENTO">Alistamiento</option>
             <option value="REPARACION">Reparacion</option>
@@ -208,14 +214,24 @@ return (
               value={newOwnItem}
               onChange={(e) => setNewOwnItem(e.target.value)}
               placeholder="Nombre del ítem"
+              disabled={loading}
             />
-            <button type="button" onClick={addOwnItem}>Agregar</button>
+            <button type="button" onClick={addOwnItem} disabled={loading || !newOwnItem.trim()}>
+              {loading ? '...' : 'Agregar'}
+            </button>
           </div>
           <div className="own-items-list">
             {ownItems.map((item, index) => (
               <div key={index} className="own-item-row">
                 <span>{item}</span>
-                <button type="button" className="danger small" onClick={() => removeOwnItem(index)}>Eliminar</button>
+                <button 
+                  type="button" 
+                  className="danger small" 
+                  onClick={() => confirmRemoveOwnItem(index, item)}
+                  disabled={loading}
+                >
+                  Eliminar
+                </button>
               </div>
             ))}
           </div>
@@ -231,6 +247,7 @@ return (
                 type="checkbox"
                 checked={checklistItems.includes(item.id)}
                 onChange={() => toggleChecklistItem(item.id)}
+                disabled={loading}
               />
               <span>{item.name}</span>
             </label>
@@ -240,9 +257,19 @@ return (
       </div>
 
       <div>
-        {message && <div className="alert">{message}</div>}
-        <button disabled={loading} onClick={handleSubmit}>{loading ? 'Guardando...' : 'Crear orden'}</button>
+        <button disabled={loading} onClick={handleSubmit}>
+          {loading ? 'Creando...' : 'Crear orden'}
+        </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onConfirm={removeOwnItem}
+        onCancel={() => setDeleteConfirm(null)}
+        title="¿Eliminar item?"
+        message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"?`}
+        confirmText="Eliminar"
+      />
     </div>
   );
 }
