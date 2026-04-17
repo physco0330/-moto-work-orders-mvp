@@ -188,7 +188,6 @@ function PilotosPage() {
             </tbody>
           </table>
         </div>
-        </div>
       )}
 
       {showModal && (
