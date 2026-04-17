@@ -9,7 +9,7 @@ function MotocicletasPage() {
   const [showModal, setShowModal] = useState(false);
   const [editando, setEditando] = useState(null);
   const [filterPilot, setFilterPilot] = useState('');
-  const [form, setForm] = useState({ plate: '', brand: '', model: '', clientId: '' });
+  const [form, setForm] = useState({ model: '', year: '', hours: '', clientId: '' });
 
   useEffect(() => {
     loadData();
@@ -33,16 +33,16 @@ function MotocicletasPage() {
 
   const openNew = () => {
     setEditando(null);
-    setForm({ plate: '', brand: '', model: '', clientId: '' });
+    setForm({ model: '', year: '', hours: '', clientId: '' });
     setShowModal(true);
   };
 
   const openEdit = (moto) => {
     setEditando(moto);
     setForm({ 
-      plate: moto.plate, 
-      brand: moto.brand, 
-      model: moto.model,
+      model: moto.model || '', 
+      year: moto.year || '', 
+      hours: moto.hours || '',
       clientId: moto.clientId || ''
     });
     setShowModal(true);

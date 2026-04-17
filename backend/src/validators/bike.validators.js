@@ -1,11 +1,13 @@
 const Joi = require('joi');
 
 const bikeCreateSchema = Joi.object({
-  plate: Joi.any(),
-  brand: Joi.any(),
-  model: Joi.any(),
-  cylinder: Joi.any(),
-  clientId: Joi.any(),
+  plate: Joi.any().allow(null, ''),
+  brand: Joi.any().allow(null, ''),
+  model: Joi.string().required(),
+  cylinder: Joi.any().allow(null),
+  year: Joi.any().allow(null),
+  hours: Joi.any().allow(null),
+  clientId: Joi.number().integer().required(),
 });
 
 const bikeIdParamSchema = Joi.object({
