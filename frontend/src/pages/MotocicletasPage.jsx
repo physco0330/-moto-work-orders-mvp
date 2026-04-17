@@ -1,6 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 
+function SortableTh({ label, sortKey, currentSort, onSort }) {
+  const direction = currentSort.key === sortKey ? currentSort.direction : null;
+  
+  const handleClick = () => {
+    if (currentSort.key === sortKey) {
+      if (currentSort.direction === 'asc') {
+        onSort({ key: sortKey, direction: 'desc' });
+      } else {
+        onSort({ key: null, direction: null });
+      }
+    } else {
+      onSort({ key: sortKey, direction: 'asc' });
+    }
+  };
+
+  return (
+    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        {direction === 'asc' && <span>↑</span>}
+        {direction === 'desc' && <span>↓</span>}
+        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
+      </span>
+    </th>
+  );
+}
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
 function MotocicletasPage() {
   const [motos, setMotos] = useState([]);
   const [pilotos, setPilotos] = useState([]);
@@ -10,6 +41,7 @@ function MotocicletasPage() {
   const [editando, setEditando] = useState(null);
   const [filterPilot, setFilterPilot] = useState('');
   const [form, setForm] = useState({ model: '', year: '', hours: '', clientId: '' });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
 
   useEffect(() => {
     loadData();
@@ -78,6 +110,27 @@ function MotocicletasPage() {
     ? motos.filter(m => m.clientId === parseInt(filterPilot))
     : motos;
 
+  const handleSort = (config) => {
+    setSortConfig(config);
+  };
+
+  const sortedMotos = React.useMemo(() => {
+    return [...filteredMotos].sort((a, b) => {
+      let aVal = getNestedValue(a, sortConfig.key);
+      let bVal = getNestedValue(b, sortConfig.key);
+      if (aVal === null || aVal === undefined) aVal = '';
+      if (bVal === null || bVal === undefined) bVal = '';
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredMotos, sortConfig]);
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -109,16 +162,16 @@ function MotocicletasPage() {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Modelo</th>
-                <th>Año</th>
-                <th>Horas</th>
-                <th>Piloto</th>
+                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Modelo" sortKey="model" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Año" sortKey="year" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Horas" sortKey="hours" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Piloto" sortKey="client.name" currentSort={sortConfig} onSort={handleSort} />
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filteredMotos.map((m) => (
+              {sortedMotos.map((m) => (
                 <tr key={m.id}>
                   <td>{m.id}</td>
                   <td>{m.model}</td>
@@ -133,7 +186,7 @@ function MotocicletasPage() {
                   </td>
                 </tr>
               ))}
-              {!filteredMotos.length && (
+              {!sortedMotos.length && (
                 <tr><td colSpan="6" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay motocicletas</td></tr>
               )}
             </tbody>

@@ -2,12 +2,40 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
+function SortableTh({ label, sortKey, currentSort, onSort }) {
+  const direction = currentSort.key === sortKey ? currentSort.direction : null;
+  
+  const handleClick = () => {
+    if (currentSort.key === sortKey) {
+      if (currentSort.direction === 'asc') {
+        onSort({ key: sortKey, direction: 'desc' });
+      } else {
+        onSort({ key: null, direction: null });
+      }
+    } else {
+      onSort({ key: sortKey, direction: 'asc' });
+    }
+  };
+
+  return (
+    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        {direction === 'asc' && <span>↑</span>}
+        {direction === 'desc' && <span>↓</span>}
+        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
+      </span>
+    </th>
+  );
+}
+
 function PilotosPage() {
   const [pilotos, setPilotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [newPilot, setNewPilot] = useState({ name: '', phone: '', email: '' });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +76,27 @@ function PilotosPage() {
     }
   };
 
+  const handleSort = (config) => {
+    setSortConfig(config);
+  };
+
+  const sortedPilotos = React.useMemo(() => {
+    return [...pilotos].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+      if (aVal === null || aVal === undefined) aVal = '';
+      if (bVal === null || bVal === undefined) bVal = '';
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [pilotos, sortConfig]);
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -66,16 +115,16 @@ function PilotosPage() {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Email</th>
+                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Nombre" sortKey="name" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Teléfono" sortKey="phone" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Email" sortKey="email" currentSort={sortConfig} onSort={handleSort} />
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {pilotos.map((p) => (
+              {sortedPilotos.map((p) => (
                 <tr key={p.id}>
                   <td>{p.id}</td>
                   <td>{p.name}</td>
@@ -90,7 +139,7 @@ function PilotosPage() {
                   </td>
                 </tr>
               ))}
-              {!pilotos.length && (
+              {!sortedPilotos.length && (
                 <tr><td colSpan="6" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay pilotos registrados</td></tr>
               )}
             </tbody>

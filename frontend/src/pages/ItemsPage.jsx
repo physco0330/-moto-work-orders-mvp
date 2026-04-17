@@ -1,12 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 
+function SortableTh({ label, sortKey, currentSort, onSort }) {
+  const direction = currentSort.key === sortKey ? currentSort.direction : null;
+  
+  const handleClick = () => {
+    if (currentSort.key === sortKey) {
+      if (currentSort.direction === 'asc') {
+        onSort({ key: sortKey, direction: 'desc' });
+      } else {
+        onSort({ key: null, direction: null });
+      }
+    } else {
+      onSort({ key: sortKey, direction: 'asc' });
+    }
+  };
+
+  return (
+    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        {direction === 'asc' && <span>↑</span>}
+        {direction === 'desc' && <span>↓</span>}
+        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
+      </span>
+    </th>
+  );
+}
+
 function ItemsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [newItem, setNewItem] = useState({ name: '' });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
 
   useEffect(() => {
     const load = async () => {
@@ -45,6 +73,27 @@ function ItemsPage() {
     }
   };
 
+  const handleSort = (config) => {
+    setSortConfig(config);
+  };
+
+  const sortedItems = React.useMemo(() => {
+    return [...items].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+      if (aVal === null || aVal === undefined) aVal = '';
+      if (bVal === null || bVal === undefined) bVal = '';
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [items, sortConfig]);
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -63,14 +112,14 @@ function ItemsPage() {
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Estado</th>
+                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Nombre" sortKey="name" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Estado" sortKey="active" currentSort={sortConfig} onSort={handleSort} />
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
+              {sortedItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
                   <td>{item.name}</td>
@@ -84,7 +133,7 @@ function ItemsPage() {
                   </td>
                 </tr>
               ))}
-              {!items.length && (
+              {!sortedItems.length && (
                 <tr><td colSpan="4" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay items registrados</td></tr>
               )}
             </tbody>

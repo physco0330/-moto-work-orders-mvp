@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import Pagination from '../components/Pagination';
+import { SortableTable, useSortableData } from '../components/SortableTable';
 import { STATUS } from '../constants/status';
 
 function WorkOrdersPage() {
@@ -11,6 +12,7 @@ function WorkOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
+  const [localSort, setLocalSort] = useState({ key: 'id', direction: 'desc' });
 
   const status = searchParams.get('status') || '';
   const plate = searchParams.get('plate') || '';
@@ -34,7 +36,7 @@ function WorkOrdersPage() {
     load();
   }, [status, plate, page]);
 
-const stats = {
+  const stats = {
     total: pagination.stats?.total || pagination.total || 0,
     recibidas: pagination.stats?.recibidas || 0,
     enProceso: pagination.stats?.enProceso || 0,
@@ -50,6 +52,45 @@ const stats = {
     if (!next.page) params.delete('page');
     setSearchParams(params);
   };
+
+  const handleSort = (config) => {
+    setLocalSort(config);
+    const params = new URLSearchParams(searchParams);
+    if (config.key) {
+      params.set('sortBy', config.key);
+      params.set('sortOrder', config.direction);
+    } else {
+      params.delete('sortBy');
+      params.delete('sortOrder');
+    }
+    setSearchParams(params);
+  };
+
+  const sortedOrders = React.useMemo(() => {
+    if (!localSort.key) return orders;
+    return [...orders].sort((a, b) => {
+      let aVal = getNestedValue(a, localSort.key);
+      let bVal = getNestedValue(b, localSort.key);
+      if (aVal === null || aVal === undefined) aVal = '';
+      if (bVal === null || bVal === undefined) bVal = '';
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return localSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      if (aStr < bStr) return localSort.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return localSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [orders, localSort]);
+
+  const columns = [
+    { key: 'id', label: 'ID', sortKey: 'id' },
+    { key: 'plate', label: 'Placa', sortKey: 'bike.plate' },
+    { key: 'status', label: 'Estado', sortKey: 'status' },
+    { key: 'entryDate', label: 'Fecha', sortKey: 'entryDate' },
+    { key: 'total', label: 'Total', sortKey: 'total' },
+  ];
 
   return (
     <div className="content-grid">
@@ -114,26 +155,26 @@ const stats = {
           <table>
             <thead>
               <tr>
-                <th>Placa</th>
-                <th>Cliente</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th>Total</th>
+                <SortableTh label="ID" sortKey="id" currentSort={localSort} onSort={handleSort} />
+                <SortableTh label="Placa" sortKey="bike.plate" currentSort={localSort} onSort={handleSort} />
+                <SortableTh label="Estado" sortKey="status" currentSort={localSort} onSort={handleSort} />
+                <SortableTh label="Fecha" sortKey="entryDate" currentSort={localSort} onSort={handleSort} />
+                <SortableTh label="Total" sortKey="total" currentSort={localSort} onSort={handleSort} />
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {sortedOrders.map((order) => (
                 <tr key={order.id}>
+                  <td>{order.id}</td>
                   <td>
                     <Link to={`/work-orders/${order.id}`} className="chip">{order.bike?.plate}</Link>
                   </td>
-                  <td>{order.bike?.client?.name}</td>
                   <td><StatusBadge status={order.status} /></td>
                   <td>{order.entryDate}</td>
                   <td>${Number(order.total).toFixed(2)}</td>
                 </tr>
               ))}
-              {!orders.length && (
+              {!sortedOrders.length && (
                 <tr><td colSpan="5" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay ordenes para mostrar</td></tr>
               )}
             </tbody>
@@ -143,6 +184,37 @@ const stats = {
 
       <Pagination page={pagination.page} totalPages={pagination.totalPages} onChange={(nextPage) => updateFilters({ page: nextPage })} />
     </div>
+  );
+}
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
+function SortableTh({ label, sortKey, currentSort, onSort }) {
+  const direction = currentSort.key === sortKey ? currentSort.direction : null;
+  
+  const handleClick = () => {
+    if (currentSort.key === sortKey) {
+      if (currentSort.direction === 'asc') {
+        onSort({ key: sortKey, direction: 'desc' });
+      } else {
+        onSort({ key: null, direction: null });
+      }
+    } else {
+      onSort({ key: sortKey, direction: 'asc' });
+    }
+  };
+
+  return (
+    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        {direction === 'asc' && <span>↑</span>}
+        {direction === 'desc' && <span>↓</span>}
+        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
+      </span>
+    </th>
   );
 }
 

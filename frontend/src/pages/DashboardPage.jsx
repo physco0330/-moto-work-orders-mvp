@@ -4,12 +4,40 @@ import api from '../services/api';
 import ChartSection from '../components/ChartSection';
 import StatusBadge from '../components/StatusBadge';
 
+function SortableTh({ label, sortKey, currentSort, onSort }) {
+  const direction = currentSort.key === sortKey ? currentSort.direction : null;
+  
+  const handleClick = () => {
+    if (currentSort.key === sortKey) {
+      if (currentSort.direction === 'asc') {
+        onSort({ key: sortKey, direction: 'desc' });
+      } else {
+        onSort({ key: null, direction: null });
+      }
+    } else {
+      onSort({ key: sortKey, direction: 'asc' });
+    }
+  };
+
+  return (
+    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        {direction === 'asc' && <span>↑</span>}
+        {direction === 'desc' && <span>↓</span>}
+        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
+      </span>
+    </th>
+  );
+}
+
 function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, activeClients: 0 });
   const [activities, setActivities] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
 
   useEffect(() => {
     loadDashboardData();
@@ -69,6 +97,27 @@ function DashboardPage() {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
   };
+
+  const handleSort = (config) => {
+    setSortConfig(config);
+  };
+
+  const sortedOrders = React.useMemo(() => {
+    return [...recentOrders].sort((a, b) => {
+      let aVal = getNestedValue(a, sortConfig.key);
+      let bVal = getNestedValue(b, sortConfig.key);
+      if (aVal === null || aVal === undefined) aVal = '';
+      if (bVal === null || bVal === undefined) bVal = '';
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [recentOrders, sortConfig]);
 
   return (
     <div className="dashboard-new">
@@ -157,20 +206,18 @@ function DashboardPage() {
           <table className="orders-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Placa</th>
-                <th>Cliente</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th>Total</th>
+                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Placa" sortKey="bike.plate" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Estado" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Fecha" sortKey="entryDate" currentSort={sortConfig} onSort={handleSort} />
+                <SortableTh label="Total" sortKey="total" currentSort={sortConfig} onSort={handleSort} />
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map(order => (
+              {sortedOrders.map(order => (
                 <tr key={order.id} onClick={() => window.location.href = `/work-orders/${order.id}`}>
                   <td className="order-id-cell">#{order.id}</td>
                   <td><span className="plate-badge">{order.bike?.plate}</span></td>
-                  <td className="client-cell">{order.bike?.client?.name}</td>
                   <td><StatusBadge status={order.status} /></td>
                   <td className="date-cell">{order.entryDate}</td>
                   <td className="total-cell">${Number(order.total || 0).toFixed(2)}</td>
@@ -182,6 +229,10 @@ function DashboardPage() {
       </div>
     </div>
   );
+}
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
 export default DashboardPage;
