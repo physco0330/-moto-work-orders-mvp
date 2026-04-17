@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import Pagination from '../components/Pagination';
-import { SortableTable, useSortableData } from '../components/SortableTable';
 import { STATUS } from '../constants/status';
 
 function getNestedValue(obj, path) {

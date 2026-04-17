@@ -1,5 +1,9 @@
 import React, { useState, useMemo } from 'react';
 
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
 export function SortIcon({ direction }) {
   if (!direction) return <span className="sort-icon neutral">↕</span>;
   return <span className="sort-icon active">{direction === 'asc' ? '↑' : '↓'}</span>;
@@ -62,10 +66,6 @@ export function useSortableData(items, defaultKey = null, defaultDirection = 'as
   const setSort = (config) => setSortConfig(config);
 
   return { sortedItems, sortConfig, setSort };
-}
-
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
 export default function SortableTable({ columns, data, emptyMessage = 'No hay datos para mostrar' }) {
