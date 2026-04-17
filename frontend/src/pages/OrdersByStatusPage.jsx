@@ -87,11 +87,35 @@ function OrdersByStatusPage({ status, type }) {
   const handleView = async (order) => {
     setLoadingAction('view');
     try {
-      const { data } = await api.get(`/work-orders/${order.id}`);
-      setOrderDetails(data);
+      const [orderRes, checklistRes, transitionsRes] = await Promise.all([
+        api.get(`/work-orders/${order.id}`),
+        api.get(`/work-orders/${order.id}/checklist`),
+        api.get(`/work-orders/${order.id}/transitions`)
+      ]);
+      setOrderDetails({
+        ...orderRes.data,
+        checklistItems: checklistRes.data || [],
+        allowed: transitionsRes.data?.allowed || []
+      });
       setViewOrder(order);
     } catch (e) {
       showError('Error cargando detalles');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleChangeStatus = async (newStatus) => {
+    if (!newStatus) return;
+    setLoadingAction('status');
+    try {
+      await api.patch(`/work-orders/${viewOrder.id}/status`, { toStatus: newStatus, note: '' });
+      success(`Estado cambiado a ${newStatus}`);
+      setViewOrder(null);
+      setOrderDetails(null);
+      load();
+    } catch (e) {
+      showError(e.response?.data?.message || 'Error cambiando estado');
     } finally {
       setLoadingAction(null);
     }
@@ -265,9 +289,9 @@ function OrdersByStatusPage({ status, type }) {
                 </div>
               </div>
 
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 20 }}>
                 <h4 style={{ marginBottom: 12, fontSize: 14, color: '#374151' }}>
-                  Items del Sistema ({orderDetails.checklistItems?.length || 0})
+                  Checklist ({orderDetails.checklistItems?.length || 0})
                 </h4>
                 <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, maxHeight: 200, overflowY: 'auto' }}>
                   {orderDetails.checklistItems?.map((item, idx) => (
@@ -281,15 +305,43 @@ function OrdersByStatusPage({ status, type }) {
                   )}
                 </div>
               </div>
+
+              {orderDetails.allowed?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ marginBottom: 12, fontSize: 14, color: '#374151' }}>
+                    Cambiar Estado
+                  </h4>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {orderDetails.allowed.map((newStatus) => (
+                      <button 
+                        key={newStatus} 
+                        className="button" 
+                        onClick={() => handleChangeStatus(newStatus)}
+                        disabled={loadingAction === 'status'}
+                        style={{ backgroundColor: newStatus === 'LISTA' ? '#22c55e' : newStatus === 'ENTREGADA' ? '#3b82f6' : '#f59e0b' }}
+                      >
+                        {newStatus === 'DIAGNOSTICO' ? 'Iniciar Diagnóstico' : 
+                         newStatus === 'EN_PROCESO' ? 'En Proceso' : 
+                         newStatus === 'LISTA' ? 'Marcar Lista' : 
+                         newStatus === 'ENTREGADA' ? 'Entregada' : newStatus}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="modal-footer">
               <button className="ghost" onClick={() => { setViewOrder(null); setOrderDetails(null); }}>Cerrar</button>
-              <button className="button" style={{ backgroundColor: '#3b82f6' }} onClick={() => handleEmail(viewOrder)}>
-                Enviar correo
-              </button>
-              <button className="button" style={{ backgroundColor: '#ef4444' }} onClick={() => handlePDF(viewOrder)}>
-                Generar PDF
-              </button>
+              {showActions && (
+                <>
+                  <button className="button" style={{ backgroundColor: '#3b82f6' }} onClick={() => handleEmail(viewOrder)}>
+                    Enviar correo
+                  </button>
+                  <button className="button" style={{ backgroundColor: '#ef4444' }} onClick={() => handlePDF(viewOrder)}>
+                    Generar PDF
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

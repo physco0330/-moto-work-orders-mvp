@@ -72,13 +72,14 @@ function MotocicletasPage() {
 
   const openNew = () => {
     setEditando(null);
-    setForm({ model: '', year: '', hours: '', clientId: '' });
+    setForm({ plate: '', model: '', year: '', hours: '', clientId: '' });
     setShowModal(true);
   };
 
   const openEdit = (moto) => {
     setEditando(moto);
     setForm({ 
+      plate: moto.plate || '',
       model: moto.model || '', 
       year: moto.year || '', 
       hours: moto.hours || '',
@@ -250,7 +251,17 @@ function MotocicletasPage() {
                   </select>
                 </div>
                 <div>
-                  <label>Modelo</label>
+                  <label>Placa *</label>
+                  <input 
+                    value={form.plate || ''} 
+                    onChange={e => setForm({...form, plate: e.target.value.toUpperCase()})} 
+                    placeholder="Ej: ABC123" 
+                    required
+                    style={{ textTransform: 'uppercase' }}
+                  />
+                </div>
+                <div>
+                  <label>Modelo *</label>
                   <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} placeholder="Ej: CRF 450R, YZ 250F" required />
                 </div>
                 <div>
