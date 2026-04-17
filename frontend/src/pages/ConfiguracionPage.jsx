@@ -1,8 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+import { useToast } from '../components/Toast';
 
 function ConfiguracionPage() {
   const { user } = useAuth();
+  const { success, error: showError } = useToast();
+  const [loading, setLoading] = useState(null);
+
+  const handleReset = async () => {
+    const confirmReset = window.confirm('¿Estás seguro de resetear la base de datos? Se eliminarán TODOS los registros.');
+    if (!confirmReset) return;
+    
+    const secondConfirm = window.confirm('Esta acción NO se puede deshacer. ¿Continuar?');
+    if (!secondConfirm) return;
+    
+    setLoading('reset');
+    try {
+      await api.post('/util/reset');
+      success('Base de datos reseteada');
+      window.location.reload();
+    } catch (e) {
+      showError(e.response?.data?.message || 'Error al resetear');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleSeed = async () => {
+    const confirmSeed = window.confirm('¿Generar datos de prueba? Esto agregará registros de ejemplo.');
+    if (!confirmSeed) return;
+    
+    setLoading('seed');
+    try {
+      await api.post('/util/seed');
+      success('Datos de prueba generados');
+      window.location.reload();
+    } catch (e) {
+      showError(e.response?.data?.message || 'Error al generar datos');
+    } finally {
+      setLoading(null);
+    }
+  };
 
   return (
     <div className="content-grid">
@@ -42,6 +81,37 @@ function ConfiguracionPage() {
           </div>
         </div>
       </div>
+
+      {user?.role === 'ADMIN' && (
+        <div className="card">
+          <div className="card-header">
+            <h2 className="card-title">Administración de Datos</h2>
+          </div>
+          
+          <div className="form-stack" style={{ gap: 12 }}>
+            <p className="muted">Opciones solo para administradores.</p>
+            
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button 
+                className="button" 
+                onClick={handleSeed}
+                disabled={loading === 'seed'}
+                style={{ background: '#22c55e' }}
+              >
+                {loading === 'seed' ? 'Generando...' : 'Generar datos de prueba'}
+              </button>
+              
+              <button 
+                className="button danger" 
+                onClick={handleReset}
+                disabled={loading === 'reset'}
+              >
+                {loading === 'reset' ? 'Reseteando...' : 'Resetear datos'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header">

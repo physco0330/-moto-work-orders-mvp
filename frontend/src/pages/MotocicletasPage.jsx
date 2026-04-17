@@ -72,13 +72,14 @@ function MotocicletasPage() {
 
   const openNew = () => {
     setEditando(null);
-    setForm({ plate: '', model: '', year: '', hours: '', clientId: '' });
+    setForm({ brand: '', plate: '', model: '', year: '', hours: '', clientId: '' });
     setShowModal(true);
   };
 
   const openEdit = (moto) => {
     setEditando(moto);
     setForm({ 
+      brand: moto.brand || '',
       plate: moto.plate || '',
       model: moto.model || '', 
       year: moto.year || '', 
@@ -89,6 +90,11 @@ function MotocicletasPage() {
   };
 
   const handleSave = async () => {
+    if (!form.clientId || !form.brand || !form.plate || !form.model) {
+      showError('Todos los campos marcados con * son obligatorios');
+      return;
+    }
+    
     setLoadingAction('saving');
     try {
       if (editando) {
@@ -249,6 +255,15 @@ function MotocicletasPage() {
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label>Marca *</label>
+                  <input 
+                    value={form.brand || ''} 
+                    onChange={e => setForm({...form, brand: e.target.value})} 
+                    placeholder="Ej: Honda, Yamaha, KTM" 
+                    required
+                  />
                 </div>
                 <div>
                   <label>Placa *</label>
