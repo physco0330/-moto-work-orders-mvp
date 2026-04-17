@@ -82,9 +82,7 @@ const start = async () => {
               id SERIAL PRIMARY KEY,
               work_order_id INTEGER NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
               checklist_item_id INTEGER NOT NULL REFERENCES "ChecklistItems"(id) ON DELETE CASCADE,
-              checked BOOLEAN DEFAULT false,
-              created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+              checked BOOLEAN DEFAULT false
             );
           `);
           console.log('WorkOrderChecklistItems table created');

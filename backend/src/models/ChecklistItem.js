@@ -26,10 +26,7 @@ module.exports = (sequelize) => {
       sequelize,
       modelName: 'ChecklistItem',
       tableName: 'ChecklistItems',
-      underscored: true,
-      timestamps: true,
-      createdAt: 'created_at',
-      updatedAt: 'updated_at',
+      timestamps: false,
     }
   );
 
