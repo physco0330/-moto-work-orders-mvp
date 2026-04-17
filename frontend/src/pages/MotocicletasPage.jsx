@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../services/api';
 
 function MotocicletasPage() {
@@ -124,7 +123,7 @@ function MotocicletasPage() {
                   <td>{m.id}</td>
                   <td>{m.model}</td>
                   <td>{m.year || '-'}</td>
-                  <td>{m.hours ? `${m.hours}h` : '-'}</td>
+                  <td>{m.hours || '0'}h</td>
                   <td>{m.client?.name || '-'}</td>
                   <td>
                     <div className="action-buttons">
