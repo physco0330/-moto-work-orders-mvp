@@ -5,7 +5,7 @@ const Bike = sequelize.define(
   'Bike',
   {
     id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-    plate: { type: DataTypes.STRING(30), allowNull: true },
+    plate: { type: DataTypes.STRING(30), allowNull: true, defaultValue: '' },
     brand: { type: DataTypes.STRING(120), allowNull: true },
     model: { type: DataTypes.STRING(120), allowNull: false },
     cylinder: { type: DataTypes.INTEGER, allowNull: true },

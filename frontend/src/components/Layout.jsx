@@ -39,12 +39,10 @@ function Layout() {
             <span className="menu-text">Motocicletas</span>
           </NavLink>
           
-          <NavLink to="/items" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">✅</span>
+<NavLink to="/items" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
+            <span className="menu-icon">📝</span>
             <span className="menu-text">Items</span>
           </NavLink>
-          
-          <div className="menu-divider">Órdenes</div>
           
           <NavLink to="/work-orders/pendientes" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
             <span className="menu-icon">⏳</span>
@@ -64,13 +62,6 @@ function Layout() {
           <NavLink to="/work-orders/historial" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
             <span className="menu-icon">📋</span>
             <span className="menu-text">Historial</span>
-          </NavLink>
-          
-          <div className="menu-divider">Sistema</div>
-          
-          <NavLink to="/work-orders" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">📋</span>
-            <span className="menu-text">Órdenes</span>
           </NavLink>
           
           {user?.role === 'ADMIN' && (
