@@ -114,28 +114,54 @@ function CreateWorkOrderPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    if (!selectedPilotId) {
+      showError('Debes seleccionar un piloto');
+      return;
+    }
+    
     setLoading(true);
     try {
-      const payload = bike?.id
-        ? { 
-            motoId: bike.id, 
-            faultDescription,
-            pilotName: pilotName || null,
-            serviceType: serviceType || null,
-            hoursRegistered: Number(hoursRegistered) || 0,
-            ownItems,
-            checklistItemIds: checklistItems,
-          }
-        : {
-            client,
-            bike: { ...bikeData, cylinder: bikeData.cylinder === '' ? null : Number(bikeData.cylinder) },
-            faultDescription,
-            pilotName: pilotName || null,
-            serviceType: serviceType || null,
-            hoursRegistered: Number(hoursRegistered) || 0,
-            ownItems,
-            checklistItemIds: checklistItems,
-          };
+      let payload;
+      
+      if (bike?.id) {
+        payload = { 
+          motoId: bike.id, 
+          faultDescription,
+          pilotName: pilotName || null,
+          serviceType: serviceType || null,
+          hoursRegistered: Number(hoursRegistered) || 0,
+          ownItems,
+          checklistItemIds: checklistItems,
+        };
+      } else {
+        const selectedPilot = pilotos.find(p => p.id.toString() === selectedPilotId);
+        
+        if (!bikeData.plate || !bikeData.model) {
+          showError('Debes ingresar la placa y modelo de la moto');
+          setLoading(false);
+          return;
+        }
+        
+        payload = {
+          client: {
+            name: selectedPilot?.name || pilotName,
+            phone: selectedPilot?.phone || '',
+            email: selectedPilot?.email || '',
+          },
+          bike: { 
+            ...bikeData, 
+            plate: bikeData.plate.toUpperCase(),
+            cylinder: bikeData.cylinder === '' ? null : Number(bikeData.cylinder)
+          },
+          faultDescription,
+          pilotName: selectedPilot?.name || pilotName || null,
+          serviceType: serviceType || null,
+          hoursRegistered: Number(hoursRegistered) || 0,
+          ownItems,
+          checklistItemIds: checklistItems,
+        };
+      }
 
       const { data } = await api.post('/work-orders', payload);
       success('Orden creada exitosamente');
@@ -171,15 +197,26 @@ function CreateWorkOrderPage() {
           </label>
           {bike && <div className="alert success">Moto encontrada: {bike.plate} - {bike.client?.name}</div>}
           
-          {/* Formulario de cliente comentado - solo usar piloto existente
           {!bike && (
-            <>
-              <label>Cliente
-                <input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} placeholder="Nombre" />
+            <div className="grid two" style={{ marginTop: 12 }}>
+              <label>Placa *
+                <input 
+                  value={bikeData.plate} 
+                  onChange={(e) => setBikeData({...bikeData, plate: e.target.value})} 
+                  placeholder="Ej: ABC123"
+                  disabled={loading}
+                />
               </label>
-            </>
+              <label>Modelo *
+                <input 
+                  value={bikeData.model} 
+                  onChange={(e) => setBikeData({...bikeData, model: e.target.value})} 
+                  placeholder="Ej: CRF 450R"
+                  disabled={loading}
+                />
+              </label>
+            </div>
           )}
-          */}
 
           <label>Piloto *
             <select value={selectedPilotId} onChange={handlePilotChange} required disabled={loading}>

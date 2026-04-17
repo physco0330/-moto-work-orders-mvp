@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import ChartSection from '../components/ChartSection';
 import StatusBadge from '../components/StatusBadge';
@@ -42,6 +42,7 @@ function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadDashboardData();
@@ -119,7 +120,7 @@ function DashboardPage() {
 
   return (
     <div className="dashboard-new">
-      <Link to="/work-orders/new" className="fab-button-top">
+      <Link to="/work-orders/new" className="fab-button-top fab-blue">
         <span className="fab-icon">+</span>
         <span className="fab-text">Nueva Orden</span>
       </Link>
@@ -130,28 +131,40 @@ function DashboardPage() {
       </div>
 
       <div className="stats-grid-new">
-        <Link to="/work-orders/pendientes" className="stat-card-new stat-red">
-          <div className="stat-card-text">
-            <span className="stat-card-value">{stats.pending}</span>
-            <span className="stat-card-title">Servicios Pendientes</span>
+        <Link to="/work-orders/pendientes" className="stat-card-mui stat-red">
+          <div className="stat-card-content">
+            <p className="stat-label">Servicios Pendientes</p>
+            <h4 className="stat-number">{stats.pending}</h4>
+          </div>
+          <div className="stat-icon-wrapper">
+            <span className="stat-icon-emoji">⏳</span>
           </div>
         </Link>
-        <Link to="/work-orders/proceso" className="stat-card-new stat-orange">
-          <div className="stat-card-text">
-            <span className="stat-card-value">{stats.inProgress}</span>
-            <span className="stat-card-title">Servicios en Proceso</span>
+        <Link to="/work-orders/proceso" className="stat-card-mui stat-orange">
+          <div className="stat-card-content">
+            <p className="stat-label">Servicios en Proceso</p>
+            <h4 className="stat-number">{stats.inProgress}</h4>
+          </div>
+          <div className="stat-icon-wrapper">
+            <span className="stat-icon-emoji">🔧</span>
           </div>
         </Link>
-        <Link to="/work-orders/terminados" className="stat-card-new stat-green">
-          <div className="stat-card-text">
-            <span className="stat-card-value">{stats.completed}</span>
-            <span className="stat-card-title">Servicios Terminados</span>
+        <Link to="/work-orders/terminados" className="stat-card-mui stat-green">
+          <div className="stat-card-content">
+            <p className="stat-label">Servicios Terminados</p>
+            <h4 className="stat-number">{stats.completed}</h4>
+          </div>
+          <div className="stat-icon-wrapper">
+            <span className="stat-icon-emoji">✅</span>
           </div>
         </Link>
-        <Link to="/pilotos" className="stat-card-new stat-blue">
-          <div className="stat-card-text">
-            <span className="stat-card-value">{stats.activeClients}</span>
-            <span className="stat-card-title">Pilotos Activos</span>
+        <Link to="/pilotos" className="stat-card-mui stat-blue">
+          <div className="stat-card-content">
+            <p className="stat-label">Pilotos Activos</p>
+            <h4 className="stat-number">{stats.activeClients}</h4>
+          </div>
+          <div className="stat-icon-wrapper">
+            <span className="stat-icon-emoji">🏍️</span>
           </div>
         </Link>
       </div>
@@ -213,7 +226,7 @@ function DashboardPage() {
             </thead>
             <tbody>
               {sortedOrders.map(order => (
-                <tr key={order.id} onClick={() => window.location.href = `/work-orders/${order.id}`}>
+                <tr key={order.id} onClick={() => navigate(`/work-orders/${order.id}`)} style={{ cursor: 'pointer' }}>
                   <td className="order-id-cell">#{order.id}</td>
                   <td><span className="plate-badge">{order.bike?.plate}</span></td>
                   <td><StatusBadge status={order.status} /></td>

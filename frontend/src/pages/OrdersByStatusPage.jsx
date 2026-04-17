@@ -136,7 +136,6 @@ function OrdersByStatusPage({ status, type }) {
           <h1 className="page-title">{TITLE_MAP[status] || 'Órdenes'}</h1>
           <p className="page-description">Lista de órdenes de trabajo según su estado.</p>
         </div>
-        <Link to="/work-orders/new" className="button">Nueva Orden</Link>
       </div>
 
       {loading && <div className="card">Cargando...</div>}

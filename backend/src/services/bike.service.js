@@ -2,14 +2,23 @@ const { Op } = require('sequelize');
 const { Bike, Client } = require('../models');
 
 const createBike = async (payload) => {
-  const client = await Client.findByPk(payload.clientId);
+  const clientId = typeof payload.clientId === 'string' ? parseInt(payload.clientId) : payload.clientId;
+  
+  if (!clientId || isNaN(clientId)) {
+    const error = new Error('clientId es requerido y debe ser un número');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const client = await Client.findByPk(clientId);
   if (!client) {
     const error = new Error('Cliente no encontrado');
     error.statusCode = 404;
     throw error;
   }
 
-  const bike = await Bike.create(payload);
+  const bikeData = { ...payload, clientId };
+  const bike = await Bike.create(bikeData);
   return Bike.findByPk(bike.id, { include: [{ model: Client, as: 'client' }] });
 };
 

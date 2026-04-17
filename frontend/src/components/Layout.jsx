@@ -73,11 +73,6 @@ function Layout() {
             <span className="menu-text">Órdenes</span>
           </NavLink>
           
-          <NavLink to="/work-orders/new" className="menu-item" onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">➕</span>
-            <span className="menu-text">Nueva Orden</span>
-          </NavLink>
-          
           {user?.role === 'ADMIN' && (
             <NavLink to="/users" className="menu-item" onClick={() => setSidebarOpen(false)}>
               <span className="menu-icon">👥</span>

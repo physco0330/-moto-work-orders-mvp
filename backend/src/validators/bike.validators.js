@@ -7,7 +7,10 @@ const bikeCreateSchema = Joi.object({
   cylinder: Joi.any().allow(null),
   year: Joi.any().allow(null),
   hours: Joi.any().allow(null),
-  clientId: Joi.number().integer().required(),
+  clientId: Joi.alternatives().try(
+    Joi.number().integer(),
+    Joi.string().allow('', null)
+  ).required(),
 });
 
 const bikeIdParamSchema = Joi.object({
