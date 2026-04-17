@@ -111,9 +111,9 @@ function MotocicletasPage() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Placa</th>
-                <th>Marca</th>
                 <th>Modelo</th>
+                <th>Año</th>
+                <th>Horas</th>
                 <th>Piloto</th>
                 <th>Acciones</th>
               </tr>
@@ -122,9 +122,9 @@ function MotocicletasPage() {
               {filteredMotos.map((m) => (
                 <tr key={m.id}>
                   <td>{m.id}</td>
-                  <td><Link to={`/work-orders?plate=${m.plate}`} className="chip">{m.plate}</Link></td>
-                  <td>{m.brand}</td>
                   <td>{m.model}</td>
+                  <td>{m.year || '-'}</td>
+                  <td>{m.hours ? `${m.hours}h` : '-'}</td>
                   <td>{m.client?.name || '-'}</td>
                   <td>
                     <div className="action-buttons">
@@ -165,16 +165,16 @@ function MotocicletasPage() {
                   </select>
                 </div>
                 <div>
-                  <label>Placa</label>
-                  <input value={form.plate} onChange={e => setForm({...form, plate: e.target.value})} required />
-                </div>
-                <div>
-                  <label>Marca</label>
-                  <input value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} required />
-                </div>
-                <div>
                   <label>Modelo</label>
-                  <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} required />
+                  <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} placeholder="Ej: CRF 450R, YZ 250F" required />
+                </div>
+                <div>
+                  <label>Año</label>
+                  <input type="number" value={form.year || ''} onChange={e => setForm({...form, year: e.target.value})} placeholder="Año de fabricación" />
+                </div>
+                <div>
+                  <label>Horas</label>
+                  <input type="number" value={form.hours || ''} onChange={e => setForm({...form, hours: e.target.value})} placeholder="Horas de uso" />
                 </div>
               </div>
             </div>

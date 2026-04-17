@@ -67,6 +67,20 @@ const start = async () => {
           console.log('New columns added to work_orders');
         }
 
+        const bikeColumnsResult = await sequelize.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name = 'bikes' AND table_schema = 'public';
+        `, { type: sequelize.QueryTypes.SELECT });
+
+        const bikeColumns = bikeColumnsResult.map(c => c.column_name);
+        
+        if (!bikeColumns.includes('year')) {
+          console.log('Adding year and hours columns to bikes...');
+          await sequelize.query(`ALTER TABLE bikes ADD COLUMN year INTEGER;`);
+          await sequelize.query(`ALTER TABLE bikes ADD COLUMN hours DECIMAL(10,2);`);
+          console.log('New columns added to bikes');
+        }
+
         const checklistTable = await sequelize.query(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
