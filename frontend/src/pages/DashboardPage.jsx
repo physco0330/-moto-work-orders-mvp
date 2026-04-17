@@ -4,6 +4,10 @@ import api from '../services/api';
 import ChartSection from '../components/ChartSection';
 import StatusBadge from '../components/StatusBadge';
 
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
 function SortableTh({ label, sortKey, currentSort, onSort }) {
   const direction = currentSort.key === sortKey ? currentSort.direction : null;
   
@@ -229,10 +233,6 @@ function DashboardPage() {
       </div>
     </div>
   );
-}
-
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
 export default DashboardPage;

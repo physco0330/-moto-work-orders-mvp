@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
 const STATUS_MAP = {
   pendientes: 'RECIBIDA',
   proceso: 'EN_PROCESO',
@@ -132,10 +136,6 @@ function OrdersByStatusPage({ status, type }) {
       )}
     </div>
   );
-}
-
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
 export default OrdersByStatusPage;
