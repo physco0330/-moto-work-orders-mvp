@@ -152,7 +152,7 @@ function OrdersByStatusPage({ status, type }) {
       })
     : orders;
 
-  const showActions = status === 'terminados' || status === 'historial';
+  const showActions = status === 'terminados';
 
   return (
     <div className="content-grid">
