@@ -4,37 +4,60 @@ import api from '../services/api';
 
 function MotocicletasPage() {
   const [motos, setMotos] = useState([]);
+  const [pilotos, setPilotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editando, setEditando] = useState(null);
-  const [form, setForm] = useState({ plate: '', brand: '', model: '' });
+  const [filterPilot, setFilterPilot] = useState('');
+  const [form, setForm] = useState({ plate: '', brand: '', model: '', clientId: '' });
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const { data } = await api.get('/bikes');
-        setMotos(data.data || data);
-      } catch (e) {
-        setError(e.response?.data?.message || 'Error cargando motocicletas');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [bikesRes, clientsRes] = await Promise.all([
+        api.get('/bikes'),
+        api.get('/clients')
+      ]);
+      setMotos(bikesRes.data.data || bikesRes.data);
+      setPilotos(clientsRes.data.data || clientsRes.data);
+    } catch (e) {
+      setError(e.response?.data?.message || 'Error cargando');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openNew = () => {
+    setEditando(null);
+    setForm({ plate: '', brand: '', model: '', clientId: '' });
+    setShowModal(true);
+  };
 
   const openEdit = (moto) => {
     setEditando(moto);
-    setForm({ plate: moto.plate, brand: moto.brand, model: moto.model });
+    setForm({ 
+      plate: moto.plate, 
+      brand: moto.brand, 
+      model: moto.model,
+      clientId: moto.clientId || ''
+    });
     setShowModal(true);
   };
 
   const handleSave = async () => {
     try {
-      await api.put(`/bikes/${editando.id}`, form);
-      setMotos(motos.map(m => m.id === editando.id ? { ...m, ...form } : m));
+      if (editando) {
+        await api.put(`/bikes/${editando.id}`, form);
+        setMotos(motos.map(m => m.id === editando.id ? { ...m, ...form } : m));
+      } else {
+        const { data } = await api.post('/bikes', form);
+        setMotos([...motos, data.data || data]);
+      }
       setShowModal(false);
       setEditando(null);
     } catch (e) {
@@ -52,6 +75,10 @@ function MotocicletasPage() {
     }
   };
 
+  const filteredMotos = filterPilot 
+    ? motos.filter(m => m.clientId === parseInt(filterPilot))
+    : motos;
+
   return (
     <div className="content-grid">
       <div className="page-hero">
@@ -59,6 +86,20 @@ function MotocicletasPage() {
           <h1 className="page-title">Motocicletas</h1>
           <p className="page-description">Gestiona las motorcycles registradas en el taller.</p>
         </div>
+        <button className="button" onClick={openNew}>+ Nueva Motocicleta</button>
+      </div>
+
+      <div className="filters" style={{ marginBottom: 16 }}>
+        <select 
+          value={filterPilot} 
+          onChange={(e) => setFilterPilot(e.target.value)}
+          style={{ maxWidth: 250 }}
+        >
+          <option value="">Todos los pilotos</option>
+          {pilotos.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
       </div>
 
       {loading && <div className="card">Cargando...</div>}
@@ -73,12 +114,12 @@ function MotocicletasPage() {
                 <th>Placa</th>
                 <th>Marca</th>
                 <th>Modelo</th>
-                <th>Cliente</th>
+                <th>Piloto</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {motos.map((m) => (
+              {filteredMotos.map((m) => (
                 <tr key={m.id}>
                   <td>{m.id}</td>
                   <td><Link to={`/work-orders?plate=${m.plate}`} className="chip">{m.plate}</Link></td>
@@ -93,7 +134,7 @@ function MotocicletasPage() {
                   </td>
                 </tr>
               ))}
-              {!motos.length && (
+              {!filteredMotos.length && (
                 <tr><td colSpan="6" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay motocicletas</td></tr>
               )}
             </tbody>
@@ -105,22 +146,35 @@ function MotocicletasPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Editar Motocicleta</h3>
+              <h3>{editando ? 'Editar Motocicleta' : 'Nueva Motocicleta'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-stack">
                 <div>
+                  <label>Piloto</label>
+                  <select 
+                    value={form.clientId} 
+                    onChange={e => setForm({...form, clientId: e.target.value})}
+                    required
+                  >
+                    <option value="">Seleccionar piloto...</option>
+                    {pilotos.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label>Placa</label>
-                  <input value={form.plate} onChange={e => setForm({...form, plate: e.target.value})} />
+                  <input value={form.plate} onChange={e => setForm({...form, plate: e.target.value})} required />
                 </div>
                 <div>
                   <label>Marca</label>
-                  <input value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+                  <input value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} required />
                 </div>
                 <div>
                   <label>Modelo</label>
-                  <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+                  <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} required />
                 </div>
               </div>
             </div>

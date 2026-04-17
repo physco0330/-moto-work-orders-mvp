@@ -39,4 +39,15 @@ const deleteBike = async (id) => {
   return true;
 };
 
-module.exports = { createBike, searchBikes, getBikeById, deleteBike };
+const updateBike = async (id, data) => {
+  const bike = await Bike.findByPk(id);
+  if (!bike) {
+    const error = new Error('Moto no encontrada');
+    error.statusCode = 404;
+    throw error;
+  }
+  await bike.update(data);
+  return Bike.findByPk(id, { include: [{ model: Client, as: 'client' }] });
+};
+
+module.exports = { createBike, searchBikes, getBikeById, deleteBike, updateBike };
