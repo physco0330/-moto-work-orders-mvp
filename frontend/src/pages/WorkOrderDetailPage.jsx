@@ -348,6 +348,33 @@ function WorkOrderDetailPage() {
           <div className="card">
             <div className="card-header">
               <div>
+                <h3 className="card-title">Checklist del Sistema</h3>
+              </div>
+            </div>
+            <div className="checklist-grid">
+              {systemItems.map((item) => {
+                const checkedItem = checklistItems.find(c => c.checklistItemId === item.id);
+                return (
+                  <label key={item.id} className="checklist-item">
+                    <input
+                      type="checkbox"
+                      checked={!!checkedItem?.completed}
+                      onChange={() => toggleChecklistItem(item.id)}
+                      disabled={order.status === 'ENTREGADA' || order.status === 'CANCELADA'}
+                    />
+                    <span>{item.name}</span>
+                  </label>
+                );
+              })}
+              {!systemItems.length && (
+                <p className="muted">No hay items de checklist配置ados</p>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <div>
                 <h3 className="card-title">Items de la orden</h3>
               </div>
             </div>
