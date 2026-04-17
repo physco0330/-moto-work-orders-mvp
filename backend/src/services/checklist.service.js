@@ -1,12 +1,6 @@
-const { sequelize, WorkOrder, ChecklistItem } = require('../models');
+const { sequelize } = require('../models');
 
 const getChecklistByWorkOrder = async (workOrderId) => {
-  const WorkOrderChecklistItem = sequelize.models.WorkOrderChecklistItem || sequelize.define('WorkOrderChecklistItem', {
-    workOrderId: { type: sequelize.INTEGER, field: 'work_order_id' },
-    checklistItemId: { type: sequelize.INTEGER, field: 'checklist_item_id' },
-    checked: { type: sequelize.BOOLEAN },
-  }, { tableName: 'WorkOrderChecklistItems', underscored: true, timestamps: false });
-  
   const result = await sequelize.query(`
     SELECT wci.id, wci.checklist_item_id as "checklistItemId", wci.checked, ci.name
     FROM "WorkOrderChecklistItems" wci
