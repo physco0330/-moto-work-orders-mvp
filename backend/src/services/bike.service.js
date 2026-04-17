@@ -38,12 +38,21 @@ const getBikeById = async (id) => {
 };
 
 const deleteBike = async (id) => {
+  const { WorkOrder } = require('../models');
   const bike = await Bike.findByPk(id);
   if (!bike) {
     const error = new Error('Moto no encontrada');
     error.statusCode = 404;
     throw error;
   }
+  
+  const orders = await WorkOrder.count({ where: { motoId: id } });
+  if (orders > 0) {
+    const error = new Error('No se puede eliminar: la moto tiene órdenes asociadas');
+    error.statusCode = 400;
+    throw error;
+  }
+  
   await bike.destroy();
   return true;
 };

@@ -14,10 +14,10 @@ const MECANICO_ALLOWED_STATUSES = [STATUS.DIAGNOSTICO, STATUS.EN_PROCESO, STATUS
 // Determina las transiciones permitidas por el negocio.
 const getAllowedTransitions = (currentStatus) => {
   if (currentStatus === STATUS.ENTREGADA || currentStatus === STATUS.CANCELADA) return [];
-  if (currentStatus === STATUS.RECIBIDA) return [STATUS.DIAGNOSTICO, STATUS.CANCELADA];
-  if (currentStatus === STATUS.DIAGNOSTICO) return [STATUS.EN_PROCESO, STATUS.CANCELADA];
+  if (currentStatus === STATUS.RECIBIDA) return [STATUS.EN_PROCESO, STATUS.DIAGNOSTICO, STATUS.CANCELADA];
+  if (currentStatus === STATUS.DIAGNOSTICO) return [STATUS.EN_PROCESO, STATUS.LISTA, STATUS.CANCELADA];
   if (currentStatus === STATUS.EN_PROCESO) return [STATUS.LISTA, STATUS.CANCELADA];
-  if (currentStatus === STATUS.LISTA) return [STATUS.ENTREGADA, STATUS.CANCELADA];
+  if (currentStatus === STATUS.LISTA) return [STATUS.LISTA, STATUS.CANCELADA];
   return ORDER;
 };
 
