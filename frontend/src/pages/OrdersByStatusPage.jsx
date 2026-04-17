@@ -192,21 +192,6 @@ function OrdersByStatusPage({ status, type }) {
                       <div className="action-buttons">
                         <button 
                           className="ghost small icon-btn" 
-                          onClick={() => handleView(order)}
-                          disabled={loadingAction === 'view'}
-                          title="Ver"
-                        >
-                          {loadingAction === 'view' ? (
-                            <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
-                          ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                              <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                          )}
-                        </button>
-                        <button 
-                          className="ghost small icon-btn" 
                           onClick={() => handleEmail(order)}
                           title="Enviar correo"
                           style={{ color: '#3b82f6' }}

@@ -44,11 +44,11 @@ function WorkOrderDetailPage() {
         api.get('/checklist-items'),
       ]);
       setOrder(orderRes.data);
-      setHistory(historyRes.data.data || []);
-      setHistoryMeta(historyRes.data.meta || historyMeta);
-      setAllowed(transitionsRes.data.allowed || []);
-      setChecklistItems(checklistRes.data || []);
-      setSystemItems(systemItemsRes.data || []);
+      setHistory(historyRes.data?.data || historyRes.data || []);
+      setHistoryMeta(historyRes.data?.meta || historyMeta);
+      setAllowed(transitionsRes.data?.allowed || []);
+      setChecklistItems(checklistRes.data?.data || checklistRes.data || []);
+      setSystemItems(systemItemsRes.data?.data || systemItemsRes.data || []);
       setEditForm({
         serviceType: orderRes.data.serviceType || '',
         pilotName: orderRes.data.pilotName || '',
