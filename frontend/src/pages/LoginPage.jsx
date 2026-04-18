@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Box, TextField, Button, Typography, Paper, InputAdornment, IconButton } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 
@@ -7,6 +10,7 @@ function LoginPage() {
   const [email, setEmail] = useState('admin@taller.com');
   const [password, setPassword] = useState('Admin12345!');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { error: showError } = useToast();
@@ -25,47 +29,83 @@ function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12)' }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Taller MX</h1>
-          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>Ingresa tus credenciales</p>
-        </div>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: '#fafafa',
+      px: 2
+    }}>
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          p: 4, 
+          width: '100%', 
+          maxWidth: 400,
+          borderRadius: 3
+        }}
+      >
+        <Box sx={{ textAlign: 'center', mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: '#2196f3', mb: 1 }}>
+            Taller MX
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Ingresa tus credenciales
+          </Typography>
+        </Box>
         
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#334155', marginBottom: 6 }}>Email</label>
-              <input 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                type="email" 
-                required 
-                style={{ width: '100%', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 14, outline: 'none' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#334155', marginBottom: 6 }}>Contraseña</label>
-              <input 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                type="password" 
-                required 
-                style={{ width: '100%', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 14, outline: 'none' }}
-              />
-            </div>
-          </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <TextField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+              autoComplete="email"
+            />
+            <TextField
+              label="Contraseña"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              fullWidth
+              variant="outlined"
+              autoComplete="current-password"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Box>
 
-          <button 
+          <Button 
             type="submit" 
+            variant="contained"
+            fullWidth
+            size="large"
             disabled={loading}
-            style={{ width: '100%', marginTop: 24, padding: '14px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            sx={{ 
+              mt: 3, 
+              py: 1.5,
+              fontWeight: 600,
+              textTransform: 'none'
+            }}
           >
             {loading ? 'Entrando...' : 'Iniciar Sesión'}
-          </button>
+          </Button>
         </form>
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 }
 

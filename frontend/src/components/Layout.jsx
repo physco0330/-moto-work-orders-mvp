@@ -1,100 +1,194 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { 
+  Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, 
+  ListItemText, AppBar, Toolbar, Typography, IconButton, Divider,
+  Avatar, useMediaQuery, useTheme
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PeopleIcon from '@mui/icons-material/People';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import BuildIcon from '@mui/icons-material/Build';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HistoryIcon from '@mui/icons-material/History';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../context/AuthContext';
+
+const drawerWidth = 260;
+
+const menuItems = [
+  { path: '/dashboard', icon: <DashboardIcon />, label: 'Dashboard' },
+  { path: '/pilotos', icon: <PeopleIcon />, label: 'Pilotos' },
+  { path: '/motocicletas', icon: <TwoWheelerIcon />, label: 'Motocicletas' },
+  { path: '/items', icon: <ListAltIcon />, label: 'Items' },
+  { path: '/work-orders/pendientes', icon: <PendingActionsIcon />, label: 'Pendientes' },
+  { path: '/work-orders/proceso', icon: <BuildIcon />, label: 'En Proceso' },
+  { path: '/work-orders/terminados', icon: <CheckCircleIcon />, label: 'Terminados' },
+  { path: '/work-orders/historial', icon: <HistoryIcon />, label: 'Historial' },
+  { path: '/configuracion', icon: <SettingsIcon />, label: 'Mi Configuración' },
+];
 
 function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawer = (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <img src="/logo-skm3.jpg" alt="Pavas" style={{ width: 36, height: 36, borderRadius: 8 }} />
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#2196f3' }}>
+          Taller MX
+        </Typography>
+      </Box>
+      <Divider />
+      <List sx={{ flex: 1, px: 1, py: 1 }}>
+        {menuItems.map((item) => (
+          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+            <ListItemButton 
+              component={NavLink} 
+              to={item.path}
+              onClick={() => isMobile && setMobileOpen(false)}
+              sx={{ 
+                borderRadius: 2,
+                '&.active': { bgcolor: 'primary.lighter', color: 'primary.main' }
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+        {user?.role === 'ADMIN' && (
+          <ListItem disablePadding>
+            <ListItemButton 
+              component={NavLink} 
+              to="/users"
+              onClick={() => isMobile && setMobileOpen(false)}
+              sx={{ borderRadius: 2 }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <PeopleIcon />
+              </ListItemIcon>
+              <ListItemText primary="Usuarios" />
+            </ListItemButton>
+          </ListItem>
+        )}
+      </List>
+      <Divider />
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main' }}>
+            {user?.name?.charAt(0)}
+          </Avatar>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+              {user?.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user?.role === 'ADMIN' ? 'Administrador' : 'Mecánico'}
+            </Typography>
+          </Box>
+        </Box>
+        <ListItemButton 
+          onClick={handleLogout}
+          sx={{ borderRadius: 2, color: 'error.main' }}
+        >
+          <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Cerrar sesión" />
+        </ListItemButton>
+      </Box>
+    </Box>
+  );
+
   return (
-    <div className="app-shell">
-      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        ☰
-      </button>
+    <Box sx={{ display: 'flex' }}>
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          width: { md: `calc(100% - ${drawerWidth}px)` }, 
+          ml: { md: `${drawerWidth}px` },
+          bgcolor: '#fff',
+          color: '#212121'
+        }}
+        elevation={1}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { md: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Taller MX
+          </Typography>
+        </Toolbar>
+      </AppBar>
       
-      <aside className={`sidebar-fixed ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-logo">
-          <img src="/logo-skm3.jpg" alt="Pavas" className="logo-img" />
-        </div>
-        
-        <nav className="sidebar-menu">
-          <NavLink to="/dashboard" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">📊</span>
-            <span className="menu-text">Dashboard</span>
-          </NavLink>
-          
-          <NavLink to="/pilotos" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">🏍️</span>
-            <span className="menu-text">Pilotos</span>
-          </NavLink>
-          
-          <NavLink to="/motocicletas" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">🛵</span>
-            <span className="menu-text">Motocicletas</span>
-          </NavLink>
-          
-<NavLink to="/items" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">📝</span>
-            <span className="menu-text">Items</span>
-          </NavLink>
-          
-          <NavLink to="/work-orders/pendientes" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">⏳</span>
-            <span className="menu-text">Pendientes</span>
-          </NavLink>
-          
-          <NavLink to="/work-orders/proceso" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">🔧</span>
-            <span className="menu-text">En Proceso</span>
-          </NavLink>
-          
-          <NavLink to="/work-orders/terminados" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">✅</span>
-            <span className="menu-text">Terminados</span>
-          </NavLink>
-          
-          <NavLink to="/work-orders/historial" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">📋</span>
-            <span className="menu-text">Historial</span>
-          </NavLink>
-          
-          {user?.role === 'ADMIN' && (
-            <NavLink to="/users" className="menu-item" onClick={() => setSidebarOpen(false)}>
-              <span className="menu-icon">👥</span>
-              <span className="menu-text">Usuarios</span>
-            </NavLink>
-          )}
-          
-          <NavLink to="/configuracion" className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
-            <span className="menu-icon">⚙️</span>
-            <span className="menu-text">Mi Configuración</span>
-          </NavLink>
-        </nav>
-        
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <div className="user-name">{user?.name}</div>
-            <div className="user-role">{user?.role === 'ADMIN' ? 'Administrador' : 'Mecánico'}</div>
-          </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            <span>🚪</span>
-            <span>Cerrar sesión</span>
-          </button>
-        </div>
-      </aside>
+      <Box
+        component="nav"
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      >
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { width: drawerWidth }
+          }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': { width: drawerWidth }
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
       
-      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-      
-      <main className="main-content">
+      <Box
+        component="main"
+        sx={{ 
+          flexGrow: 1, 
+          p: 2, 
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          mt: '64px',
+          bgcolor: '#fafafa',
+          minHeight: '100vh'
+        }}
+      >
         <Outlet />
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
