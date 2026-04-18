@@ -1,51 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useToast } from '../components/Toast';
-import { ConfirmDialog } from '../components/ConfirmDialog';
-
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-}
-
-function SortableTh({ label, sortKey, currentSort, onSort }) {
-  const direction = currentSort.key === sortKey ? currentSort.direction : null;
-  
-  const handleClick = () => {
-    if (currentSort.key === sortKey) {
-      if (currentSort.direction === 'asc') {
-        onSort({ key: sortKey, direction: 'desc' });
-      } else {
-        onSort({ key: null, direction: null });
-      }
-    } else {
-      onSort({ key: sortKey, direction: 'asc' });
-    }
-  };
-
-  return (
-    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        {label}
-        {direction === 'asc' && <span>↑</span>}
-        {direction === 'desc' && <span>↓</span>}
-        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
-      </span>
-    </th>
-  );
-}
+import {
+  Box, Card, CardContent, Typography, Button, TextField, Dialog, DialogTitle,
+  DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, IconButton, Chip, Fab, Grid, FormControl, InputLabel, Select, MenuItem
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
+import CloseIcon from '@mui/icons-material/Close';
 
 function MotocicletasPage() {
   const { success, error: showError } = useToast();
   const [motos, setMotos] = useState([]);
   const [pilotos, setPilotos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editando, setEditando] = useState(null);
   const [filterPilot, setFilterPilot] = useState('');
-  const [form, setForm] = useState({ model: '', year: '', hours: '', clientId: '' });
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
-  const [loadingAction, setLoadingAction] = useState(null);
+  const [form, setForm] = useState({ brand: '', plate: '', model: '', year: '', hours: '', clientId: '' });
+  const [loadingAction, setLoadingAction] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
@@ -61,9 +37,7 @@ function MotocicletasPage() {
       ]);
       setMotos(bikesRes.data.data || bikesRes.data);
       setPilotos(clientsRes.data.data || clientsRes.data);
-      setError('');
     } catch (e) {
-      setError(e.response?.data?.message || 'Error cargando');
       showError('Error al cargar datos');
     } finally {
       setLoading(false);
@@ -78,11 +52,11 @@ function MotocicletasPage() {
 
   const openEdit = (moto) => {
     setEditando(moto);
-    setForm({ 
+    setForm({
       brand: moto.brand || '',
       plate: moto.plate || '',
-      model: moto.model || '', 
-      year: moto.year || '', 
+      model: moto.model || '',
+      year: moto.year || '',
       hours: moto.hours || '',
       clientId: moto.clientId || ''
     });
@@ -94,8 +68,8 @@ function MotocicletasPage() {
       showError('Todos los campos marcados con * son obligatorios');
       return;
     }
-    
-    setLoadingAction('saving');
+
+    setLoadingAction(true);
     try {
       if (editando) {
         await api.put(`/bikes/${editando.id}`, form);
@@ -111,203 +85,203 @@ function MotocicletasPage() {
     } catch (e) {
       showError(e.response?.data?.message || 'Error guardando');
     } finally {
-      setLoadingAction(null);
+      setLoadingAction(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    setLoadingAction(id);
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    setLoadingAction(true);
     try {
-      await api.delete(`/bikes/${id}`);
-      setMotos(motos.filter(m => m.id !== id));
+      await api.delete(`/bikes/${deleteConfirm.id}`);
+      setMotos(motos.filter(m => m.id !== deleteConfirm.id));
       setDeleteConfirm(null);
       success('Motocicleta eliminada');
     } catch (e) {
       showError(e.response?.data?.message || 'Error eliminando');
     } finally {
-      setLoadingAction(null);
+      setLoadingAction(false);
     }
   };
 
-  const filteredMotos = filterPilot 
+  const filteredMotos = filterPilot
     ? motos.filter(m => m.clientId === parseInt(filterPilot))
     : motos;
 
-  const handleSort = (config) => {
-    setSortConfig(config);
-  };
-
-  const sortedMotos = sortConfig.key
-    ? [...filteredMotos].sort((a, b) => {
-        let aVal = getNestedValue(a, sortConfig.key) ?? '';
-        let bVal = getNestedValue(b, sortConfig.key) ?? '';
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-        return String(aVal).toLowerCase().localeCompare(String(bVal).toLowerCase()) * (sortConfig.direction === 'asc' ? 1 : -1);
-      })
-    : filteredMotos;
-
   return (
-    <div className="content-grid">
-      <div className="page-hero">
-        <div>
-          <h1 className="page-title">Motocicletas</h1>
-          <p className="page-description">Gestiona las motorcycles registradas en el taller.</p>
-        </div>
-        <button className="button" onClick={openNew}>+ Nueva Motocicleta</button>
-      </div>
+    <Box sx={{ flexGrow: 1, p: 3, bgcolor: '#fafafa', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>Motocicletas</Typography>
+          <Typography variant="body2" color="text.secondary">Gestiona las motorcycles registradas en el taller</Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
+          Nueva Motocicleta
+        </Button>
+      </Box>
 
-      <div className="filters" style={{ marginBottom: 16 }}>
-        <select 
-          value={filterPilot} 
-          onChange={(e) => setFilterPilot(e.target.value)}
-          style={{ maxWidth: 250 }}
-        >
-          <option value="">Todos los pilotos</option>
-          {pilotos.map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </div>
+      <Card sx={{ mb: 3, p: 2, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel>Filtrar por piloto</InputLabel>
+          <Select
+            value={filterPilot}
+            label="Filtrar por piloto"
+            onChange={(e) => setFilterPilot(e.target.value)}
+          >
+            <MenuItem value="">Todos los pilotos</MenuItem>
+            {pilotos.map(p => (
+              <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Card>
 
-      {loading && <div className="card">Cargando...</div>}
-      {error && <div className="alert error">{error}</div>}
+      <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+        <CardContent sx={{ p: 0 }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f9fafb' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Placa</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Marca</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Modelo</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Año</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Horas</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Piloto</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="right">Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredMotos.map((m) => (
+                  <TableRow key={m.id} hover>
+                    <TableCell>#{m.id}</TableCell>
+                    <TableCell>
+                      <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                    </TableCell>
+                    <TableCell>{m.brand || '-'}</TableCell>
+                    <TableCell>{m.model}</TableCell>
+                    <TableCell>{m.year || '-'}</TableCell>
+                    <TableCell>{m.hours || '0'}h</TableCell>
+                    <TableCell>{m.client?.name || '-'}</TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" onClick={() => openEdit(m)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {!filteredMotos.length && (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                      No hay motocicletas
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
 
-      {!loading && !error && (
-        <div className="card table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Modelo" sortKey="model" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Año" sortKey="year" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Horas" sortKey="hours" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Piloto" sortKey="client.name" currentSort={sortConfig} onSort={handleSort} />
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedMotos.map((m) => (
-                <tr key={m.id}>
-                  <td>{m.id}</td>
-                  <td>{m.model}</td>
-                  <td>{m.year || '-'}</td>
-                  <td>{m.hours || '0'}h</td>
-                  <td>{m.client?.name || '-'}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="ghost small icon-btn" 
-                        onClick={() => openEdit(m)}
-                        title="Editar"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                      </button>
-                      <button 
-                        className="danger small icon-btn" 
-                        onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}
-                        disabled={loadingAction === m.id}
-                        title="Eliminar"
-                      >
-                        {loadingAction === m.id ? (
-                          <span style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#666', borderRadius: '50%', display: 'block', animation: 'spin 0.8s linear infinite' }} />
-                        ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!sortedMotos.length && (
-                <tr><td colSpan="6" className="muted" style={{ textAlign: 'center', padding: 28 }}>No hay motocicletas</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {editando ? 'Editar Motocicleta' : 'Nueva Motocicleta'}
+          </Typography>
+          <IconButton onClick={() => setShowModal(false)}><CloseIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+            <FormControl fullWidth required>
+              <InputLabel>Piloto</InputLabel>
+              <Select
+                value={form.clientId}
+                label="Piloto"
+                onChange={e => setForm({ ...form, clientId: e.target.value })}
+              >
+                {pilotos.map(p => (
+                  <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Marca"
+              value={form.brand}
+              onChange={e => setForm({ ...form, brand: e.target.value })}
+              fullWidth
+              required
+              placeholder="Ej: Honda, Yamaha, KTM"
+            />
+            <TextField
+              label="Placa"
+              value={form.plate}
+              onChange={e => setForm({ ...form, plate: e.target.value.toUpperCase() })}
+              fullWidth
+              required
+              placeholder="Ej: ABC123"
+              sx={{ '& input': { textTransform: 'uppercase' } }}
+            />
+            <TextField
+              label="Modelo"
+              value={form.model}
+              onChange={e => setForm({ ...form, model: e.target.value })}
+              fullWidth
+              required
+              placeholder="Ej: CRF 450R, YZ 250F"
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  label="Año"
+                  type="number"
+                  value={form.year}
+                  onChange={e => setForm({ ...form, year: e.target.value })}
+                  fullWidth
+                  placeholder="Año de fabricación"
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Horas"
+                  type="number"
+                  value={form.hours}
+                  onChange={e => setForm({ ...form, hours: e.target.value })}
+                  fullWidth
+                  placeholder="Horas de uso"
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setShowModal(false)}>Cancelar</Button>
+          <Button variant="contained" onClick={handleSave} disabled={loadingAction}>
+            {loadingAction ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{editando ? 'Editar Motocicleta' : 'Nueva Motocicleta'}</h3>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-stack">
-                <div>
-                  <label>Piloto</label>
-                  <select 
-                    value={form.clientId} 
-                    onChange={e => setForm({...form, clientId: e.target.value})}
-                    required
-                  >
-                    <option value="">Seleccionar piloto...</option>
-                    {pilotos.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label>Marca *</label>
-                  <input 
-                    value={form.brand || ''} 
-                    onChange={e => setForm({...form, brand: e.target.value})} 
-                    placeholder="Ej: Honda, Yamaha, KTM" 
-                    required
-                  />
-                </div>
-                <div>
-                  <label>Placa *</label>
-                  <input 
-                    value={form.plate || ''} 
-                    onChange={e => setForm({...form, plate: e.target.value.toUpperCase()})} 
-                    placeholder="Ej: ABC123" 
-                    required
-                    style={{ textTransform: 'uppercase' }}
-                  />
-                </div>
-                <div>
-                  <label>Modelo *</label>
-                  <input value={form.model} onChange={e => setForm({...form, model: e.target.value})} placeholder="Ej: CRF 450R, YZ 250F" required />
-                </div>
-                <div>
-                  <label>Año</label>
-                  <input type="number" value={form.year || ''} onChange={e => setForm({...form, year: e.target.value})} placeholder="Año de fabricación" />
-                </div>
-                <div>
-                  <label>Horas</label>
-                  <input type="number" value={form.hours || ''} onChange={e => setForm({...form, hours: e.target.value})} placeholder="Horas de uso" />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="ghost" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className="button" onClick={handleSave} disabled={loadingAction === 'saving'}>
-                {loadingAction === 'saving' ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>¿Eliminar motocicleta?</DialogTitle>
+        <DialogContent>
+          <Typography>¿Estás seguro de eliminar "{deleteConfirm?.name}"? Esta acción no se puede deshacer.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={handleDelete} disabled={loadingAction}>
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <ConfirmDialog
-        isOpen={!!deleteConfirm}
-        onConfirm={() => deleteConfirm && handleDelete(deleteConfirm.id)}
-        onCancel={() => setDeleteConfirm(null)}
-        title="¿Eliminar motocicleta?"
-        message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
-        confirmText="Eliminar"
-      />
-    </div>
+      <Fab color="primary" sx={{ position: 'fixed', right: 24, bottom: 24 }} onClick={openNew}>
+        <AddIcon />
+      </Fab>
+    </Box>
   );
 }
 
