@@ -46,7 +46,6 @@ function OrdersByStatusPage() {
   const navigate = useNavigate();
   const [emailConfirm, setEmailConfirm] = useState(null);
   const [pdfConfirm, setPdfConfirm] = useState(null);
-  const [loading, setLoading] = useState(null);
   const showActions = status === 'terminados';
 
   useEffect(() => { loadOrders(); }, [status, page, pageSize]);
