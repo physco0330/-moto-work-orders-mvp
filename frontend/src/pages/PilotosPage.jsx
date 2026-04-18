@@ -112,7 +112,7 @@ function PilotosPage() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#fafafa', minHeight: '100vh' }}>
+    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -139,34 +139,35 @@ function PilotosPage() {
         </Button>
       </Box>
 
-      <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+      <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflowX: 'auto' }}>
         <CardContent sx={{ p: { xs: 1, md: 2 } }}>
-          <TableContainer>
-            <Table size="small">
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: { xs: 500, sm: 'auto' } }}>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f9fafb' }}>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>
+                <TableRow sx={{ bgcolor: '#f1f5f9' }}>
+                  <TableCell sx={{ fontWeight: 600, width: 50 }}>
                     <TableSortLabel active={orderBy === 'id'} direction={orderBy === 'id' ? order : 'asc'} onClick={() => handleSort('id')}>
                       ID
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 150 }}>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 140 }}>
                     <TableSortLabel active={orderBy === 'name'} direction={orderBy === 'name' ? order : 'asc'} onClick={() => handleSort('name')}>
                       Nombre
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 120 }}>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 110 }}>
                     <TableSortLabel active={orderBy === 'phone'} direction={orderBy === 'phone' ? order : 'asc'} onClick={() => handleSort('phone')}>
                       Teléfono
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 160 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }} align="right">Acciones</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 150 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 600, width: 80 }}>Estado</TableCell>
+                  <TableCell sx={{ fontWeight: 600, width: 80 }} align="center">Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sortedPilotos.map((p) => (
-                  <TableRow key={p.id} hover>
+                  <TableRow key={p.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                     <TableCell>#{p.id}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -175,7 +176,7 @@ function PilotosPage() {
                       </Box>
                     </TableCell>
                     <TableCell>{p.phone}</TableCell>
-                    <TableCell>{p.email || '-'}</TableCell>
+                    <TableCell sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.email || '-'}</TableCell>
                     <TableCell>
                       <Chip 
                         label={p.active !== false ? 'Activo' : 'Inactivo'} 
@@ -183,27 +184,30 @@ function PilotosPage() {
                         sx={{ 
                           bgcolor: p.active !== false ? '#dcfce7' : '#f3f4f6', 
                           color: p.active !== false ? '#16a34a' : '#6b7280',
-                          fontSize: '0.75rem' 
+                          fontWeight: 500,
+                          fontSize: '0.7rem' 
                         }} 
                       />
                     </TableCell>
-                    <TableCell align="right">
-                      <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)} sx={{ '&:hover': { bgcolor: '#e0e7ff' } }}>
-                        <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} sx={{ '&:hover': { bgcolor: p.active !== false ? '#fee2e2' : '#dcfce7' } }}>
-                        {p.active !== false ? (
-                          <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
-                        ) : (
-                          <CheckCircleIcon fontSize="small" sx={{ color: '#16a34a' }} />
-                        )}
-                      </IconButton>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                        <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)} sx={{ p: 0.5 }}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} sx={{ p: 0.5 }}>
+                          {p.active !== false ? (
+                            <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+                          ) : (
+                            <CheckCircleIcon fontSize="small" sx={{ color: '#16a34a' }} />
+                          )}
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
                 {!pilotos.length && (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       No hay pilotos registrados
                     </TableCell>
                   </TableRow>

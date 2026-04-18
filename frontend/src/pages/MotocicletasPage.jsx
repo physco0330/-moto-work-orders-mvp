@@ -128,7 +128,7 @@ function MotocicletasPage() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#fafafa', minHeight: '100vh' }}>
+    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -172,59 +172,61 @@ function MotocicletasPage() {
         </FormControl>
       </Card>
 
-      <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+      <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflowX: 'auto' }}>
         <CardContent sx={{ p: { xs: 1, md: 2 } }}>
-          <TableContainer>
-            <Table size="small">
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: { xs: 600, sm: 'auto' } }}>
               <TableHead>
-                <TableRow sx={{ bgcolor: '#f9fafb' }}>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 50 }}>
+                <TableRow sx={{ bgcolor: '#f1f5f9' }}>
+                  <TableCell sx={{ fontWeight: 600, width: 50 }}>
                     <TableSortLabel active={orderBy === 'id'} direction={orderBy === 'id' ? order : 'asc'} onClick={() => handleSort('id')}>
                       ID
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>
                     <TableSortLabel active={orderBy === 'plate'} direction={orderBy === 'plate' ? order : 'asc'} onClick={() => handleSort('plate')}>
                       Placa
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Marca</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Marca</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>
                     <TableSortLabel active={orderBy === 'model'} direction={orderBy === 'model' ? order : 'asc'} onClick={() => handleSort('model')}>
                       Modelo
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>Año</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>Horas</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>Piloto</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }} align="right">Acciones</TableCell>
+                  <TableCell sx={{ fontWeight: 600, width: 50 }}>Año</TableCell>
+                  <TableCell sx={{ fontWeight: 600, width: 50 }}>Horas</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Piloto</TableCell>
+                  <TableCell sx={{ fontWeight: 600, width: 70 }} align="center">Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sortedMotos.map((m) => (
-                  <TableRow key={m.id} hover>
+                  <TableRow key={m.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                     <TableCell>#{m.id}</TableCell>
                     <TableCell>
-                      <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.75rem' }} />
+                      <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.7rem' }} />
                     </TableCell>
                     <TableCell>{m.brand || '-'}</TableCell>
                     <TableCell>{m.model}</TableCell>
                     <TableCell>{m.year || '-'}</TableCell>
-                    <TableCell>{m.hours || '0'}h</TableCell>
-                    <TableCell sx={{ fontSize: '0.875rem' }}>{m.client?.name || '-'}</TableCell>
-                    <TableCell align="right">
-                      <IconButton size="small" onClick={() => openEdit(m)} sx={{ '&:hover': { bgcolor: '#e0e7ff' } }}>
-                        <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })} sx={{ '&:hover': { bgcolor: '#fee2e2' } }}>
-                        <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
-                      </IconButton>
+                    <TableCell>{m.hours || 0}h</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{m.client?.name || '-'}</TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                        <IconButton size="small" onClick={() => openEdit(m)} sx={{ p: 0.5 }}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })} sx={{ p: 0.5 }}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
                 {!sortedMotos.length && (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       No hay motocicletas
                     </TableCell>
                   </TableRow>
