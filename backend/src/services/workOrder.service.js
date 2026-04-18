@@ -243,6 +243,16 @@ const changeWorkOrderStatus = async (id, { toStatus, note }, user) => {
     workOrder.status = toStatus;
     await workOrder.save({ transaction });
 
+    // Si la orden pasa a LISTA o ENTREGADA, actualizar las horas de la moto
+    if (toStatus === 'LISTA' || toStatus === 'ENTREGADA') {
+      const bike = await Bike.findByPk(workOrder.motoId, { transaction });
+      if (bike && workOrder.hoursUsed > 0) {
+        const currentHours = parseFloat(bike.hours) || 0;
+        const newHours = currentHours + parseFloat(workOrder.hoursUsed);
+        await bike.update({ hours: newHours }, { transaction });
+      }
+    }
+
     await WorkOrderStatusHistory.create(
       {
         workOrderId: workOrder.id,
@@ -416,6 +426,16 @@ const updateWorkOrder = async (id, payload) => {
   if (payload.faultDescription !== undefined) workOrder.faultDescription = payload.faultDescription;
 
   await workOrder.save();
+
+  // Si la orden pasa a estado LISTA o ENTREGADA, actualizar las horas de la moto
+  if (workOrder.status === 'LISTA' || workOrder.status === 'ENTREGADA') {
+    const bike = await Bike.findByPk(workOrder.motoId);
+    if (bike && workOrder.hoursUsed > 0) {
+      const currentHours = parseFloat(bike.hours) || 0;
+      const newHours = currentHours + parseFloat(workOrder.hoursUsed);
+      await bike.update({ hours: newHours });
+    }
+  }
 
   return WorkOrder.findByPk(id, { include: buildWorkOrderInclude() });
 };

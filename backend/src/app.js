@@ -22,6 +22,12 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, message: 'API en funcionamiento', timestamp: new Date().toISOString() });
 });
 
+app.get('/migrate', async (req, res) => {
+  const runMigrations = require('./utils/runMigrations');
+  await runMigrations();
+  res.json({ ok: true, message: 'Migraciones ejecutadas' });
+});
+
 app.post('/api/seed', async (req, res) => {
   if (req.headers['x-seed-key'] !== process.env.SEED_KEY) {
     return res.status(401).json({ error: 'No autorizado' });
