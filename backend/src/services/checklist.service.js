@@ -2,10 +2,14 @@ const { sequelize } = require('../models');
 
 const getChecklistByWorkOrder = async (workOrderId) => {
   const result = await sequelize.query(`
-    SELECT wci.id, wci.checklist_item_id as "checklistItemId", wci.checked, ci.name
-    FROM "WorkOrderChecklistItems" wci
-    JOIN "ChecklistItems" ci ON ci.id = wci.checklist_item_id
-    WHERE wci.work_order_id = :workOrderId
+    SELECT ci.id, ci.name, 
+           COALESCE(wci.checked, false) as checked,
+           wci.id as "workOrderChecklistId",
+           ci.id as "checklistItemId"
+    FROM "ChecklistItems" ci
+    LEFT JOIN "WorkOrderChecklistItems" wci ON wci.checklist_item_id = ci.id AND wci.work_order_id = :workOrderId
+    WHERE ci.active = true
+    ORDER BY ci.id
   `, { replacements: { workOrderId }, type: sequelize.QueryTypes.SELECT });
   return result;
 };
