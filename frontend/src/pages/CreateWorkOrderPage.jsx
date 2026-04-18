@@ -46,23 +46,20 @@ function CreateWorkOrderPage() {
   const handlePilotSelect = (event, selectedPilot) => {
     if (selectedPilot) {
       setSelectedPilot(selectedPilot);
-      const pilotBikes = allBikes.filter(b => b.clientId === selectedPilot.id || b.client?.id === selectedPilot.id);
-      if (pilotBikes.length > 0) {
-        setSelectedBike(pilotBikes[0]);
-        setHoursRegistered(pilotBikes[0].hours || 0);
-        setHoursUsed(0);
-        success(`Moto cargada: ${pilotBikes[0].plate} - ${pilotBikes[0].hours || 0} horas`);
-      } else {
-        setSelectedBike(null);
-        setHoursRegistered(0);
-        setHoursUsed(0);
-      }
+      setSelectedBike(null);
+      setHoursRegistered(0);
+      setHoursUsed(0);
     } else {
       setSelectedPilot(null);
       setSelectedBike(null);
+      setHoursRegistered(0);
       setHoursUsed(0);
     }
   };
+
+  const pilotBikes = selectedPilot 
+    ? allBikes.filter(b => b.clientId === selectedPilot.id || b.client?.id === selectedPilot.id)
+    : allBikes;
 
   const handleBikeSelect = (event, selectedBike) => {
     if (selectedBike) {
@@ -153,15 +150,16 @@ function CreateWorkOrderPage() {
           <label>
             Moto *
             <Autocomplete
-              options={allBikes}
+              options={selectedPilot ? pilotBikes : []}
               getOptionLabel={(option) => option.plate || ''}
               onChange={handleBikeSelect}
               renderInput={(params) => (
-                <TextField {...params} placeholder="Buscar moto por placa" size="small" />
+                <TextField {...params} placeholder={selectedPilot ? "Seleccionar moto" : "Selecciona un piloto primero"} size="small" />
               )}
-              disabled={loading}
+              disabled={loading || !selectedPilot}
               sx={{ marginTop: 1 }}
               value={selectedBike}
+              noOptionsText={selectedPilot ? "No hay motos" : "Selecciona un piloto"}
             />
           </label>
           

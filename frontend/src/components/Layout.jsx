@@ -128,9 +128,10 @@ function Layout() {
           width: { md: `calc(100% - ${drawerWidth}px)` }, 
           ml: { md: `${drawerWidth}px` },
           bgcolor: '#fff',
-          color: '#212121'
+          color: '#212121',
+          boxShadow: '0px 1px 3px rgba(0,0,0,0.08)'
         }}
-        elevation={1}
+        elevation={0}
       >
         <Toolbar>
           <IconButton
@@ -141,9 +142,6 @@ function Layout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Taller MX
-          </Typography>
         </Toolbar>
       </AppBar>
       
