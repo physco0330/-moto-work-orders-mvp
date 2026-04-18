@@ -87,11 +87,8 @@ function DashboardPage() {
 
   return (
     <Box sx={{ flexGrow: 1, p: 3, bgcolor: '#fafafa', minHeight: '100vh' }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-        Panel Principal
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Vista general del taller y actividad reciente
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
+        Dashboard
       </Typography>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>

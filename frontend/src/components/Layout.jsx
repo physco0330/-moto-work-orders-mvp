@@ -51,14 +51,10 @@ function Layout() {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box component="a" href="/dashboard" sx={{ cursor: 'pointer' }}>
           <img src="/logo-skm3.jpg" alt="SKM" style={{ width: '100%', maxWidth: 140, borderRadius: 18, objectFit: 'contain', display: 'block' }} />
         </Box>
-        <img src="/logo-pavas.jpeg" alt="Pavas" style={{ width: 80, borderRadius: 10, objectFit: 'contain' }} />
-        <Typography variant="caption" sx={{ fontWeight: 600, color: '#1565c0', fontSize: '0.85rem' }}>
-          SKALERA MOTORS
-        </Typography>
       </Box>
       <Divider />
       <List sx={{ flex: 1, px: 1, py: 1 }}>
@@ -120,6 +116,12 @@ function Layout() {
           </ListItemIcon>
           <ListItemText primary="Cerrar sesión" />
         </ListItemButton>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2, gap: 1 }}>
+          <img src="/logo-pavas.jpeg" alt="Pavas" style={{ width: 60, borderRadius: 8, objectFit: 'contain' }} />
+          <Typography variant="caption" sx={{ fontWeight: 600, color: '#1565c0', fontSize: '0.75rem' }}>
+            SKALERA MOTORS
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
