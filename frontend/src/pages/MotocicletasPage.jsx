@@ -4,12 +4,12 @@ import { useToast } from '../components/Toast';
 import {
   Box, Card, CardContent, Typography, Button, TextField, Dialog, DialogTitle,
   DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, IconButton, Chip, Fab, Grid, FormControl, InputLabel, Select, MenuItem
+  TableHead, TableRow, IconButton, Chip, Fab, Grid, FormControl, InputLabel, 
+  Select, MenuItem, TableSortLabel
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 import CloseIcon from '@mui/icons-material/Close';
 
 function MotocicletasPage() {
@@ -23,6 +23,8 @@ function MotocicletasPage() {
   const [form, setForm] = useState({ brand: '', plate: '', model: '', year: '', hours: '', clientId: '' });
   const [loadingAction, setLoadingAction] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [orderBy, setOrderBy] = useState('id');
+  const [order, setOrder] = useState('desc');
 
   useEffect(() => {
     loadData();
@@ -43,6 +45,27 @@ function MotocicletasPage() {
       setLoading(false);
     }
   };
+
+  const handleSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const filteredMotos = filterPilot 
+    ? motos.filter(m => m.clientId === parseInt(filterPilot))
+    : motos;
+
+  const sortedMotos = [...filteredMotos].sort((a, b) => {
+    let aVal = a[orderBy] ?? '';
+    let bVal = b[orderBy] ?? '';
+    if (typeof aVal === 'number') {
+      return order === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+    return order === 'asc' 
+      ? String(aVal).localeCompare(String(bVal))
+      : String(bVal).localeCompare(String(aVal));
+  });
 
   const openNew = () => {
     setEditando(null);
@@ -104,26 +127,39 @@ function MotocicletasPage() {
     }
   };
 
-  const filteredMotos = filterPilot
-    ? motos.filter(m => m.clientId === parseInt(filterPilot))
-    : motos;
-
   return (
-    <Box sx={{ flexGrow: 1, p: 3, bgcolor: '#fafafa', minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#fafafa', minHeight: '100vh' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start', 
+        mb: 3, 
+        flexWrap: 'wrap', 
+        gap: 2 
+      }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>Motocicletas</Typography>
-          <Typography variant="body2" color="text.secondary">Gestiona las motorcycles registradas en el taller</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
+            Motocicletas
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Gestiona las motorcycles registradas en el taller
+          </Typography>
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />} 
+          onClick={openNew}
+          sx={{ display: { xs: 'none', sm: 'flex' } }}
+        >
           Nueva Motocicleta
         </Button>
       </Box>
 
       <Card sx={{ mb: 3, p: 2, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-        <FormControl sx={{ minWidth: 200 }} size="small">
-          <InputLabel>Filtrar por piloto</InputLabel>
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size="small">
+          <InputLabel id="filter-pilot-label">Filtrar por piloto</InputLabel>
           <Select
+            labelId="filter-pilot-label"
             value={filterPilot}
             label="Filtrar por piloto"
             onChange={(e) => setFilterPilot(e.target.value)}
@@ -137,44 +173,56 @@ function MotocicletasPage() {
       </Card>
 
       <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-        <CardContent sx={{ p: 0 }}>
+        <CardContent sx={{ p: { xs: 1, md: 2 } }}>
           <TableContainer>
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f9fafb' }}>
-                  <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Placa</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Marca</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Modelo</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Año</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Horas</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Piloto</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="right">Acciones</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 50 }}>
+                    <TableSortLabel active={orderBy === 'id'} direction={orderBy === 'id' ? order : 'asc'} onClick={() => handleSort('id')}>
+                      ID
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>
+                    <TableSortLabel active={orderBy === 'plate'} direction={orderBy === 'plate' ? order : 'asc'} onClick={() => handleSort('plate')}>
+                      Placa
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Marca</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>
+                    <TableSortLabel active={orderBy === 'model'} direction={orderBy === 'model' ? order : 'asc'} onClick={() => handleSort('model')}>
+                      Modelo
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>Año</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>Horas</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>Piloto</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }} align="right">Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredMotos.map((m) => (
+                {sortedMotos.map((m) => (
                   <TableRow key={m.id} hover>
                     <TableCell>#{m.id}</TableCell>
                     <TableCell>
-                      <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                      <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.75rem' }} />
                     </TableCell>
                     <TableCell>{m.brand || '-'}</TableCell>
                     <TableCell>{m.model}</TableCell>
                     <TableCell>{m.year || '-'}</TableCell>
                     <TableCell>{m.hours || '0'}h</TableCell>
-                    <TableCell>{m.client?.name || '-'}</TableCell>
+                    <TableCell sx={{ fontSize: '0.875rem' }}>{m.client?.name || '-'}</TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => openEdit(m)}>
-                        <EditIcon fontSize="small" />
+                      <IconButton size="small" onClick={() => openEdit(m)} sx={{ '&:hover': { bgcolor: '#e0e7ff' } }}>
+                        <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
                       </IconButton>
-                      <IconButton size="small" color="error" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}>
-                        <DeleteIcon fontSize="small" />
+                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })} sx={{ '&:hover': { bgcolor: '#fee2e2' } }}>
+                        <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
-                {!filteredMotos.length && (
+                {!sortedMotos.length && (
                   <TableRow>
                     <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       No hay motocicletas
@@ -187,18 +235,19 @@ function MotocicletasPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, mx: 2 } }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {editando ? 'Editar Motocicleta' : 'Nueva Motocicleta'}
           </Typography>
-          <IconButton onClick={() => setShowModal(false)}><CloseIcon /></IconButton>
+          <IconButton onClick={() => setShowModal(false)} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <FormControl fullWidth required>
-              <InputLabel>Piloto</InputLabel>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 1 }}>
+            <FormControl fullWidth required size="small">
+              <InputLabel id="pilot-select-label">Piloto</InputLabel>
               <Select
+                labelId="pilot-select-label"
                 value={form.clientId}
                 label="Piloto"
                 onChange={e => setForm({ ...form, clientId: e.target.value })}
@@ -214,6 +263,7 @@ function MotocicletasPage() {
               onChange={e => setForm({ ...form, brand: e.target.value })}
               fullWidth
               required
+              size="small"
               placeholder="Ej: Honda, Yamaha, KTM"
             />
             <TextField
@@ -222,8 +272,9 @@ function MotocicletasPage() {
               onChange={e => setForm({ ...form, plate: e.target.value.toUpperCase() })}
               fullWidth
               required
+              size="small"
               placeholder="Ej: ABC123"
-              sx={{ '& input': { textTransform: 'uppercase' } }}
+              sx={{ '& .MuiInputBase-input': { textTransform: 'uppercase' } }}
             />
             <TextField
               label="Modelo"
@@ -231,6 +282,7 @@ function MotocicletasPage() {
               onChange={e => setForm({ ...form, model: e.target.value })}
               fullWidth
               required
+              size="small"
               placeholder="Ej: CRF 450R, YZ 250F"
             />
             <Grid container spacing={2}>
@@ -241,7 +293,8 @@ function MotocicletasPage() {
                   value={form.year}
                   onChange={e => setForm({ ...form, year: e.target.value })}
                   fullWidth
-                  placeholder="Año de fabricación"
+                  size="small"
+                  placeholder="Año"
                 />
               </Grid>
               <Grid item xs={6}>
@@ -251,14 +304,15 @@ function MotocicletasPage() {
                   value={form.hours}
                   onChange={e => setForm({ ...form, hours: e.target.value })}
                   fullWidth
-                  placeholder="Horas de uso"
+                  size="small"
+                  placeholder="Horas"
                 />
               </Grid>
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowModal(false)}>Cancelar</Button>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setShowModal(false)} color="inherit">Cancelar</Button>
           <Button variant="contained" onClick={handleSave} disabled={loadingAction}>
             {loadingAction ? 'Guardando...' : 'Guardar'}
           </Button>
@@ -266,9 +320,11 @@ function MotocicletasPage() {
       </Dialog>
 
       <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>¿Eliminar motocicleta?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>¿Eliminar motocicleta?</DialogTitle>
         <DialogContent>
-          <Typography>¿Estás seguro de eliminar "{deleteConfirm?.name}"? Esta acción no se puede deshacer.</Typography>
+          <Typography variant="body2" color="text.secondary">
+            ¿Estás seguro de eliminar "{deleteConfirm?.name}"? Esta acción no se puede deshacer.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
@@ -278,7 +334,16 @@ function MotocicletasPage() {
         </DialogActions>
       </Dialog>
 
-      <Fab color="primary" sx={{ position: 'fixed', right: 24, bottom: 24 }} onClick={openNew}>
+      <Fab 
+        color="primary" 
+        sx={{ 
+          position: 'fixed', 
+          right: 24, 
+          bottom: 24,
+          display: { xs: 'flex', sm: 'none' }
+        }} 
+        onClick={openNew}
+      >
         <AddIcon />
       </Fab>
     </Box>

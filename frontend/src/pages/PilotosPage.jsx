@@ -5,7 +5,7 @@ import { useToast } from '../components/Toast';
 import {
   Box, Card, CardContent, Typography, Button, TextField, Dialog, DialogTitle,
   DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, IconButton, Chip, Fab, Grid
+  TableHead, TableRow, IconButton, Chip, Fab, Grid, TableSortLabel
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -21,6 +21,8 @@ function PilotosPage() {
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
   const [loadingAction, setLoadingAction] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [orderBy, setOrderBy] = useState('id');
+  const [order, setOrder] = useState('desc');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +40,23 @@ function PilotosPage() {
       setLoading(false);
     }
   };
+
+  const handleSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const sortedPilotos = [...pilotos].sort((a, b) => {
+    let aVal = a[orderBy] ?? '';
+    let bVal = b[orderBy] ?? '';
+    if (typeof aVal === 'number') {
+      return order === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+    return order === 'asc' 
+      ? String(aVal).localeCompare(String(bVal))
+      : String(bVal).localeCompare(String(aVal));
+  });
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
@@ -71,52 +90,80 @@ function PilotosPage() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3, bgcolor: '#fafafa', minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#fafafa', minHeight: '100vh' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start', 
+        mb: 3, 
+        flexWrap: 'wrap', 
+        gap: 2 
+      }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>Pilotos</Typography>
-          <Typography variant="body2" color="text.secondary">Gestiona los pilotos registrados en el taller</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
+            Pilotos
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Gestiona los pilotos registrados en el taller
+          </Typography>
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowModal(true)}>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />} 
+          onClick={() => setShowModal(true)}
+          sx={{ display: { xs: 'none', sm: 'flex' } }}
+        >
           Nuevo Piloto
         </Button>
       </Box>
 
       <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-        <CardContent sx={{ p: 0 }}>
+        <CardContent sx={{ p: { xs: 1, md: 2 } }}>
           <TableContainer>
-            <Table>
+            <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f9fafb' }}>
-                  <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Teléfono</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="right">Acciones</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>
+                    <TableSortLabel active={orderBy === 'id'} direction={orderBy === 'id' ? order : 'asc'} onClick={() => handleSort('id')}>
+                      ID
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 120 }}>
+                    <TableSortLabel active={orderBy === 'name'} direction={orderBy === 'name' ? order : 'asc'} onClick={() => handleSort('name')}>
+                      Nombre
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>
+                    <TableSortLabel active={orderBy === 'phone'} direction={orderBy === 'phone' ? order : 'asc'} onClick={() => handleSort('phone')}>
+                      Teléfono
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 140 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Estado</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }} align="right">Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pilotos.map((p) => (
+                {sortedPilotos.map((p) => (
                   <TableRow key={p.id} hover>
                     <TableCell>#{p.id}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PersonIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                        <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                         {p.name}
                       </Box>
                     </TableCell>
                     <TableCell>{p.phone}</TableCell>
                     <TableCell>{p.email || '-'}</TableCell>
                     <TableCell>
-                      <Chip label="Activo" size="small" sx={{ bgcolor: '#dcfce7', color: '#16a34a' }} />
+                      <Chip label="Activo" size="small" sx={{ bgcolor: '#dcfce7', color: '#16a34a', fontSize: '0.75rem' }} />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)}>
-                        <EditIcon fontSize="small" />
+                      <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)} sx={{ '&:hover': { bgcolor: '#e0e7ff' } }}>
+                        <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
                       </IconButton>
-                      <IconButton size="small" color="error" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })}>
-                        <DeleteIcon fontSize="small" />
+                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} sx={{ '&:hover': { bgcolor: '#fee2e2' } }}>
+                        <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -134,20 +181,21 @@ function PilotosPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, mx: 2 } }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>Nuevo Piloto</Typography>
-          <IconButton onClick={() => setShowModal(false)}><CloseIcon /></IconButton>
+          <IconButton onClick={() => setShowModal(false)} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, py: 1 }}>
             <TextField
-              label="Nombre"
+              label="Nombre completo"
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               fullWidth
               required
               autoFocus
+              size="small"
             />
             <TextField
               label="Teléfono"
@@ -155,28 +203,36 @@ function PilotosPage() {
               onChange={e => setForm({ ...form, phone: e.target.value })}
               fullWidth
               required
+              size="small"
             />
             <TextField
-              label="Email"
+              label="Email (opcional)"
               type="email"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
               fullWidth
+              size="small"
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowModal(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleCreate} disabled={loadingAction || !form.name.trim() || !form.phone.trim()}>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setShowModal(false)} color="inherit">Cancelar</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleCreate} 
+            disabled={loadingAction || !form.name.trim() || !form.phone.trim()}
+          >
             {loadingAction ? 'Creando...' : 'Crear Piloto'}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>¿Eliminar piloto?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>¿Eliminar piloto?</DialogTitle>
         <DialogContent>
-          <Typography>¿Estás seguro de eliminar a "{deleteConfirm?.name}"? Esta acción no se puede deshacer.</Typography>
+          <Typography variant="body2" color="text.secondary">
+            ¿Estás seguro de eliminar a "{deleteConfirm?.name}"? Esta acción no se puede deshacer.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
@@ -186,7 +242,16 @@ function PilotosPage() {
         </DialogActions>
       </Dialog>
 
-      <Fab color="primary" sx={{ position: 'fixed', right: 24, bottom: 24 }} onClick={() => setShowModal(true)}>
+      <Fab 
+        color="primary" 
+        sx={{ 
+          position: 'fixed', 
+          right: 24, 
+          bottom: 24,
+          display: { xs: 'flex', sm: 'none' }
+        }} 
+        onClick={() => setShowModal(true)}
+      >
         <AddIcon />
       </Fab>
     </Box>
