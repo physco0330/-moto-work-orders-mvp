@@ -16,6 +16,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HistoryIcon from '@mui/icons-material/History';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import HomeIcon from '@mui/icons-material/Home';
 import { useAuth } from '../context/AuthContext';
 
 const drawerWidth = 260;
@@ -51,7 +52,7 @@ function Layout() {
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <img src="/logo-skm3.jpg" alt="Pavas" style={{ width: 112, height: 112, borderRadius: 16, objectFit: 'cover' }} />
+        <img src="/logo-skm3.jpg" alt="SKM" style={{ width: '100%', maxWidth: 140, borderRadius: 18, objectFit: 'contain', display: 'block' }} />
       </Box>
       <Divider />
       <List sx={{ flex: 1, px: 1, py: 1 }}>
@@ -135,9 +136,12 @@ function Layout() {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{ mr: 1, display: { md: 'none' } }}
           >
             <MenuIcon />
+          </IconButton>
+          <IconButton color="inherit" component="a" href="/dashboard" sx={{ display: { md: 'none' } }}>
+            <HomeIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
