@@ -46,6 +46,7 @@ function OrdersByStatusPage() {
   const navigate = useNavigate();
   const [emailConfirm, setEmailConfirm] = useState(null);
   const [pdfConfirm, setPdfConfirm] = useState(null);
+  const [loading, setLoading] = useState(null);
   const showActions = status === 'terminados';
 
   useEffect(() => { loadOrders(); }, [status, page, pageSize]);
@@ -72,8 +73,19 @@ function OrdersByStatusPage() {
   const handlePageChange = (newPage) => setPage(newPage);
   const handleRowsPerPageChange = (newPageSize) => { setPageSize(newPageSize); setPage(1); };
 
-  const handleEmailClick = (order) => {
-    setEmailConfirm(order);
+  const handleEmailClick = async (order) => {
+    setLoading('email');
+    try {
+      await api.post('/email/send-work-order-notification', {
+        orderId: order.id,
+        emailType: 'status_update'
+      });
+      success(`Email enviado a ${order.bike?.client?.email || 'cliente'}`);
+    } catch (e) {
+      showError(e.response?.data?.message || 'Error enviando email');
+    } finally {
+      setLoading(null);
+    }
   };
 
   const handlePDFClick = (order) => {
@@ -154,31 +166,9 @@ function OrdersByStatusPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!emailConfirm} onClose={() => setEmailConfirm(null)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>Confirmar envío de email</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">
-            ¿Enviar notificación por email a {emailConfirm?.bike?.client?.name} ({emailConfirm?.bike?.client?.email})?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEmailConfirm(null)}>Cancelar</Button>
-          <Button variant="contained" onClick={() => { success('Email enviado'); setEmailConfirm(null); }}>Enviar</Button>
-        </DialogActions>
-      </Dialog>
+      
 
-      <Dialog open={!!pdfConfirm} onClose={() => setPdfConfirm(null)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>Descargar PDF</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">
-            ¿Descargar PDF de la orden #{pdfConfirm?.id}?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPdfConfirm(null)}>Cancelar</Button>
-          <Button variant="contained" onClick={() => { handlePDF(pdfConfirm); setPdfConfirm(null); }}>Descargar</Button>
-        </DialogActions>
-      </Dialog>
+      
     </Box>
   );
 }

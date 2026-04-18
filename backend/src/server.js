@@ -2,11 +2,13 @@ const app = require('./app');
 const sequelize = require('./config/database');
 const { execSync } = require('child_process');
 require('dotenv').config();
+const { initTransporter } = require('./services/email.service');
 
 const PORT = process.env.PORT || 4000;
 
 const start = async () => {
   try {
+    initTransporter();
     await sequelize.authenticate();
     console.log('Conexion a base de datos establecida');
 
