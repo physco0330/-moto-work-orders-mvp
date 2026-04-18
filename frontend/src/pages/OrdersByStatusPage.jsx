@@ -8,6 +8,7 @@ import {
 import EmailIcon from '@mui/icons-material/Email';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useToast } from '../components/Toast';
+import { downloadWorkOrderPDF } from '../utils/pdfGenerator';
 
 const STATUS_MAP = {
   pendientes: 'RECIBIDA',
@@ -47,9 +48,9 @@ function OrdersByStatusPage() {
   const loadOrders = async () => {
     setLoading(true);
     try {
-      let param = {};
+      let param = { pageSize: 100 };
       if (status === 'historial') {
-        param = { status: 'LISTA,ENTREGADA', pageSize: 100 };
+        param = { statusIn: 'LISTA,ENTREGADA', pageSize: 100 };
       } else if (STATUS_MAP[status]) {
         param = { status: STATUS_MAP[status], pageSize: 100 };
       }
@@ -66,8 +67,19 @@ function OrdersByStatusPage() {
     success(`Enviando correo a ${order.bike?.client?.email || 'cliente'}`);
   };
 
-  const handlePDF = (order) => {
-    success(`Generando PDF #${order.id}`);
+  const handlePDF = async (order) => {
+    try {
+      const [checklistRes, systemItemsRes] = await Promise.all([
+        api.get(`/work-orders/${order.id}/checklist`),
+        api.get('/checklist-items')
+      ]);
+      const checklistItems = checklistRes.data?.data || checklistRes.data || [];
+      const systemItems = systemItemsRes.data?.data || systemItemsRes.data || [];
+      downloadWorkOrderPDF(order, checklistItems, systemItems);
+      success('PDF generado correctamente');
+    } catch (e) {
+      showError('Error al generar PDF');
+    }
   };
 
   return (

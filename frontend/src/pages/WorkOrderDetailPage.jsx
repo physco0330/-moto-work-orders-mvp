@@ -5,6 +5,7 @@ import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { downloadWorkOrderPDF } from '../utils/pdfGenerator';
 
 function WorkOrderDetailPage() {
   const { id } = useParams();
@@ -192,6 +193,11 @@ function WorkOrderDetailPage() {
   const isPendiente = order.status === 'RECIBIDA' || order.status === 'DIAGNOSTICO' || order.status === 'EN_PROCESO';
   const canEditChecklist = order.status !== 'LISTA' && order.status !== 'ENTREGADA' && order.status !== 'CANCELADA';
 
+  const handlePDF = () => {
+    downloadWorkOrderPDF(order, checklistItems, systemItems);
+    success('PDF generado correctamente');
+  };
+
   return (
     <div className="detail-layout">
       <div className="detail-hero">
@@ -206,6 +212,7 @@ function WorkOrderDetailPage() {
             <span className="chip">{order.bike?.plate}</span>
             <span className="badge">{order.bike?.client?.name}</span>
             <StatusBadge status={order.status} />
+            <button className="button" onClick={handlePDF} style={{ marginLeft: 8 }}>PDF</button>
           </div>
         </div>
         <div className="summary-card" style={{ minWidth: 180 }}>
@@ -217,15 +224,15 @@ function WorkOrderDetailPage() {
       <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <div className="summary-card">
           <span className="summary-label">Piloto</span>
-          <span className="summary-value" style={{ fontSize: 18 }}>{order.pilotName || '-'}</span>
+          <span className="summary-value" style={{ fontSize: 18 }}>{order.pilotName || order.bike?.client?.name || '-'}</span>
         </div>
         <div className="summary-card">
-          <span className="summary-label">Horas</span>
-          <span className="summary-value" style={{ fontSize: 18 }}>{order.hoursRegistered}h</span>
+          <span className="summary-label">Horas moto</span>
+          <span className="summary-value" style={{ fontSize: 18 }}>{order.bike?.hours || 0}h</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">H. registradas</span>
-          <span className="summary-value" style={{ fontSize: 18 }}>{order.hoursUsed}h</span>
+          <span className="summary-value" style={{ fontSize: 18 }}>{order.hoursRegistered || 0}h</span>
         </div>
         <div className="summary-card">
           <span className="summary-label">Tipo</span>

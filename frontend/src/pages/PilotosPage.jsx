@@ -12,6 +12,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 function PilotosPage() {
   const { success, error: showError } = useToast();
@@ -82,11 +83,12 @@ function PilotosPage() {
     setLoadingAction(true);
     try {
       await api.delete(`/clients/${deleteConfirm.id}`);
-      setPilotos(pilotos.filter(p => p.id !== deleteConfirm.id));
+      setPilotos(pilotos.map(p => p.id === deleteConfirm.id ? { ...p, active: !p.active } : p));
       setDeleteConfirm(null);
-      success('Piloto eliminado');
+      const newState = !pilotos.find(p => p.id === deleteConfirm.id)?.active;
+      success(newState ? 'Piloto activado' : 'Piloto desactivado');
     } catch (e) {
-      showError(e.response?.data?.message || 'Error eliminando');
+      showError(e.response?.data?.message || 'Error actualizando');
     } finally {
       setLoadingAction(false);
     }
@@ -174,12 +176,27 @@ function PilotosPage() {
                     </TableCell>
                     <TableCell>{p.phone}</TableCell>
                     <TableCell>{p.email || '-'}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={p.active !== false ? 'Activo' : 'Inactivo'} 
+                        size="small" 
+                        sx={{ 
+                          bgcolor: p.active !== false ? '#dcfce7' : '#f3f4f6', 
+                          color: p.active !== false ? '#16a34a' : '#6b7280',
+                          fontSize: '0.75rem' 
+                        }} 
+                      />
+                    </TableCell>
                     <TableCell align="right">
                       <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)} sx={{ '&:hover': { bgcolor: '#e0e7ff' } }}>
                         <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
                       </IconButton>
-                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} sx={{ '&:hover': { bgcolor: '#fee2e2' } }}>
-                        <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} sx={{ '&:hover': { bgcolor: p.active !== false ? '#fee2e2' : '#dcfce7' } }}>
+                        {p.active !== false ? (
+                          <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+                        ) : (
+                          <CheckCircleIcon fontSize="small" sx={{ color: '#16a34a' }} />
+                        )}
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -251,16 +268,25 @@ function PilotosPage() {
       </Dialog>
 
       <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>¿Eliminar piloto?</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          {pilotos.find(p => p.id === deleteConfirm?.id)?.active !== false ? '¿Desactivar piloto?' : '¿Activar piloto?'}
+        </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            ¿Estás seguro de eliminar a "{deleteConfirm?.name}"? Esta acción no se puede deshacer.
+            {pilotos.find(p => p.id === deleteConfirm?.id)?.active !== false 
+              ? `¿Estás seguro de desactivar a "${deleteConfirm?.name}"?`
+              : `¿Estás seguro de activar a "${deleteConfirm?.name}"?`}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
-          <Button color="error" variant="contained" onClick={handleDelete} disabled={loadingAction}>
-            Eliminar
+          <Button 
+            variant="contained" 
+            onClick={handleDelete} 
+            disabled={loadingAction}
+            color={pilotos.find(p => p.id === deleteConfirm?.id)?.active !== false ? 'error' : 'success'}
+          >
+            {pilotos.find(p => p.id === deleteConfirm?.id)?.active !== false ? 'Desactivar' : 'Activar'}
           </Button>
         </DialogActions>
       </Dialog>

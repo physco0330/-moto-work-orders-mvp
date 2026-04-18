@@ -129,9 +129,12 @@ const createWorkOrder = async (payload, user) => {
   });
 };
 
-const listWorkOrders = async ({ status, plate, page = 1, pageSize = 10 }) => {
+const listWorkOrders = async ({ status, plate, page = 1, pageSize = 10, statusIn }) => {
   const where = {};
   if (status) where.status = status;
+  if (statusIn) {
+    where.status = { [Op.in]: statusIn.split(',') };
+  }
 
   const bikeInclude = {
     model: Bike,

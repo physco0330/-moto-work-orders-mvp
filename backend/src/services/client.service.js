@@ -39,14 +39,9 @@ const deleteClient = async (id) => {
     throw error;
   }
   
-  if (client.bikes && client.bikes.length > 0) {
-    const error = new Error('No se puede eliminar: el piloto tiene bicicletas asociadas');
-    error.statusCode = 400;
-    throw error;
-  }
-  
-  await client.destroy();
-  return true;
+  client.active = !client.active;
+  await client.save();
+  return { active: client.active };
 };
 
 module.exports = { createClient, searchClients, getClientById, deleteClient };

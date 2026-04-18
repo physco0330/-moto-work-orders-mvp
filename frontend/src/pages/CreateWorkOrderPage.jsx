@@ -65,8 +65,9 @@ function CreateWorkOrderPage() {
         model: selectedBike.model || '',
         cylinder: selectedBike.cylinder || '',
       });
-      setHoursRegistered(selectedBike.hours || 0);
-      success(`Moto seleccionada: ${selectedBike.plate}`);
+      const motoHours = selectedBike.hours || 0;
+      setHoursRegistered(motoHours);
+      success(`Moto seleccionada: ${selectedBike.plate} - ${motoHours} horas`);
     } else {
       setBike(null);
       setBikeData({ plate: '', brand: '', model: '', cylinder: '' });
