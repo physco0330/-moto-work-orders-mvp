@@ -50,8 +50,8 @@ function Layout() {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'center' }}>
-        <img src="/logo-skm3.jpg" alt="Pavas" style={{ width: 80, height: 80, borderRadius: 12, objectFit: 'cover' }} />
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src="/logo-skm3.jpg" alt="Pavas" style={{ width: 112, height: 112, borderRadius: 16, objectFit: 'cover' }} />
       </Box>
       <Divider />
       <List sx={{ flex: 1, px: 1, py: 1 }}>

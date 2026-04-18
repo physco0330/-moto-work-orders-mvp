@@ -6,6 +6,8 @@ import { useToast } from '../components/Toast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import SaveIcon from '@mui/icons-material/Save';
 
 function CreateWorkOrderPage() {
   const navigate = useNavigate();
@@ -237,9 +239,12 @@ function CreateWorkOrderPage() {
       </div>
 
       <div>
-        <button disabled={loading} onClick={handleSubmit}>
+        <Button variant="contained" disabled={loading} onClick={handleSubmit} startIcon={<SaveIcon />} sx={{ display: { xs: 'none', sm: 'flex' } }}>
           {loading ? 'Creando...' : 'Crear orden'}
-        </button>
+        </Button>
+        <Button variant="contained" disabled={loading} onClick={handleSubmit} sx={{ display: { xs: 'flex', sm: 'none' } }}>
+          <SaveIcon />
+        </Button>
       </div>
 
       <ConfirmDialog
