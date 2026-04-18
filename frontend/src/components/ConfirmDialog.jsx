@@ -30,7 +30,7 @@ export function ConfirmDialog({
             {cancelText}
           </button>
           <button 
-            style={{ background: config.bg }} 
+            style={{ background: config.bg, color: '#fff' }} 
             onClick={onConfirm}
           >
             {confirmText}

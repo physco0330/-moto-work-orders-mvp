@@ -9,17 +9,23 @@ router.post('/send-work-order-notification', auth, async (req, res) => {
     const { orderId, emailType } = req.body;
     
     const WorkOrder = require('../models/WorkOrder');
+    const Bike = require('../models/Bike');
     const Client = require('../models/Client');
     
     const order = await WorkOrder.findByPk(orderId, {
-      include: [{ model: Client, as: 'client' }]
+      include: [{
+        model: Bike,
+        as: 'bike',
+        include: [{ model: Client, as: 'client' }]
+      }]
     });
     
     if (!order) {
       return res.status(404).json({ error: 'Orden no encontrada' });
     }
     
-    if (!order.client || !order.client.email) {
+    const client = order.bike?.client;
+    if (!client || !client.email) {
       return res.status(400).json({ error: 'Cliente sin email registrado' });
     }
 
@@ -31,10 +37,10 @@ router.post('/send-work-order-notification', auth, async (req, res) => {
     };
 
     const result = await sendWorkOrderEmail({
-      to: order.client.email,
+      to: client.email,
       subject: subjects[emailType] || subjects.status_update,
       order: order.toJSON(),
-      clientName: order.client.name,
+      clientName: client.name,
       bikeInfo: `${order.bike?.brand || ''} ${order.bike?.model || ''} ${order.bike?.plate || ''}`.trim() || '-'
     });
 
