@@ -1,49 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import ChartSection from '../components/ChartSection';
-import StatusBadge from '../components/StatusBadge';
-
-// Trigger redeploy
+import {
+  Box, Grid, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, TableSortLabel, Chip, TablePagination, Fab
+} from '@mui/material';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import BuildIcon from '@mui/icons-material/Build';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PeopleIcon from '@mui/icons-material/People';
+import AddIcon from '@mui/icons-material/Add';
 
 function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
-function SortableTh({ label, sortKey, currentSort, onSort }) {
-  const direction = currentSort.key === sortKey ? currentSort.direction : null;
-  
-  const handleClick = () => {
-    if (currentSort.key === sortKey) {
-      if (currentSort.direction === 'asc') {
-        onSort({ key: sortKey, direction: 'desc' });
-      } else {
-        onSort({ key: null, direction: null });
-      }
-    } else {
-      onSort({ key: sortKey, direction: 'asc' });
-    }
-  };
-
-  return (
-    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        {label}
-        {direction === 'asc' && <span>↑</span>}
-        {direction === 'desc' && <span>↓</span>}
-        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
-      </span>
-    </th>
-  );
-}
+const STATUS_COLORS = {
+  RECIBIDA: 'warning',
+  DIAGNOSTICO: 'info',
+  EN_PROCESO: 'primary',
+  LISTA: 'success',
+  ENTREGADA: 'default',
+  CANCELADA: 'error',
+};
 
 function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, activeClients: 0 });
-  const [activities, setActivities] = useState([]);
-  const [chartData, setChartData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,42 +38,24 @@ function DashboardPage() {
   }, []);
 
   const loadDashboardData = async () => {
+    setLoading(true);
     try {
-      const ordersRes = await api.get('/work-orders', { params: { pageSize: 100 } });
-      const orders = ordersRes.data.data || [];
+      const [statsRes, ordersRes] = await Promise.all([
+        api.get('/work-orders', { params: { pageSize: 100 } }),
+        api.get('/clients', { params: { search: '' } })
+      ]);
       
-      const pending = orders.filter(o => o.status === 'RECIBIDA').length;
-      const inProgress = orders.filter(o => ['DIAGNOSTICO', 'EN_PROCESO'].includes(o.status)).length;
-      const completed = orders.filter(o => ['LISTA', 'ENTREGADA'].includes(o.status)).length;
+      const orders = ordersRes.data?.data || ordersRes.data || [];
+      const workOrders = statsRes.data?.data || statsRes.data || [];
       
-      const clientIds = new Set(orders.map(o => o.bike?.clientId).filter(Boolean));
+      setStats({
+        pending: workOrders.filter(o => o.status === 'RECIBIDA').length,
+        inProgress: workOrders.filter(o => o.status === 'EN_PROCESO').length,
+        completed: workOrders.filter(o => o.status === 'LISTA' || o.status === 'ENTREGADA').length,
+        activeClients: orders.length
+      });
       
-      setStats({ pending, inProgress, completed, activeClients: clientIds.size });
-      setRecentOrders(orders.slice(0, 6));
-
-      const days = [];
-      const today = new Date();
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        const dayOrders = orders.filter(o => o.entryDate === dateStr);
-        days.push({
-          date: dateStr,
-          day: date.toLocaleDateString('es', { weekday: 'short' }),
-          count: dayOrders.length
-        });
-      }
-      setChartData(days);
-
-      const activityData = orders.slice(0, 5).map(o => ({
-        pilotName: o.pilotName || o.bike?.client?.name || 'Sin nombre',
-        serviceType: o.serviceType || o.faultDescription?.substring(0, 20) || 'ALISTAMIENTO',
-        date: o.entryDate,
-        hours: o.hoursUsed || o.hoursRegistered || Math.floor(Math.random() * 50) + 1
-      }));
-      setActivities(activityData);
-
+      setRecentOrders(Array.isArray(workOrders) ? workOrders.slice(0, 50) : []);
     } catch (e) {
       console.error('Error loading dashboard:', e);
     } finally {
@@ -94,153 +63,145 @@ function DashboardPage() {
     }
   };
 
-  if (loading) {
-    return <div className="content center">Cargando...</div>;
-  }
-
-  const totalServices = chartData.reduce((sum, d) => sum + d.count, 0);
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  const handleSort = (sortKey) => {
+    if (sortConfig.key === sortKey) {
+      setSortConfig(sortConfig.direction === 'asc' ? { key: sortKey, direction: 'desc' } : { key: null, direction: null });
+    } else {
+      setSortConfig({ key: sortKey, direction: 'asc' });
+    }
   };
 
-  const handleSort = (config) => {
-    setSortConfig(config);
-  };
+  const sortedOrders = [...recentOrders].sort((a, b) => {
+    if (!sortConfig.key || !sortConfig.direction) return b.id - a.id;
+    const aVal = getNestedValue(a, sortConfig.key) || '';
+    const bVal = getNestedValue(b, sortConfig.key) || '';
+    return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+  });
 
-  const sortedOrders = sortConfig.key
-    ? [...recentOrders].sort((a, b) => {
-        let aVal = getNestedValue(a, sortConfig.key) ?? '';
-        let bVal = getNestedValue(b, sortConfig.key) ?? '';
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-        return String(aVal).toLowerCase().localeCompare(String(bVal).toLowerCase()) * (sortConfig.direction === 'asc' ? 1 : -1);
-      })
-    : recentOrders;
+  const statCards = [
+    { title: 'Servicios Pendientes', value: stats.pending, icon: <PendingActionsIcon />, color: '#f59e0b', link: '/work-orders/pendientes' },
+    { title: 'Servicios en Proceso', value: stats.inProgress, icon: <BuildIcon />, color: '#3b82f6', link: '/work-orders/proceso' },
+    { title: 'Servicios Terminados', value: stats.completed, icon: <CheckCircleIcon />, color: '#22c55e', link: '/work-orders/terminados' },
+    { title: 'Pilotos Activos', value: stats.activeClients, icon: <PeopleIcon />, color: '#8b5cf6', link: '/pilotos' },
+  ];
 
   return (
-    <div className="dashboard-new">
-      <Link to="/work-orders/new" className="fab-button-top fab-blue">
-        <span className="fab-icon">+</span>
-        <span className="fab-text">Nueva Orden</span>
-      </Link>
+    <Box sx={{ flexGrow: 1, p: { xs: 1, sm: 2, md: 3 }, bgcolor: '#fafafa', minHeight: '100vh' }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {statCards.map((card, index) => (
+          <Grid item xs={6} md={3} key={index}>
+            <Card 
+              component={Link} 
+              to={card.link}
+              sx={{ 
+                textDecoration: 'none',
+                borderRadius: 3,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                borderLeft: `4px solid ${card.color}`
+              }}
+            >
+              <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                    {card.title}
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                    {card.value}
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  p: 1.5, 
+                  borderRadius: 2, 
+                  bgcolor: `${card.color}20`,
+                  color: card.color 
+                }}>
+                  {card.icon}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
-      <div className="dashboard-header">
-        <h1>Panel Principal</h1>
-        <p>Vista general del taller y actividad reciente</p>
-      </div>
-
-      <div className="stats-grid-new">
-        <Link to="/work-orders/pendientes" className="stat-card-mui stat-red">
-          <div className="stat-card-content">
-            <p className="stat-label">Servicios Pendientes</p>
-            <h4 className="stat-number">{stats.pending}</h4>
-          </div>
-          <div className="stat-icon-wrapper">
-            <span className="stat-icon-emoji">⏳</span>
-          </div>
-        </Link>
-        <Link to="/work-orders/proceso" className="stat-card-mui stat-orange">
-          <div className="stat-card-content">
-            <p className="stat-label">Servicios en Proceso</p>
-            <h4 className="stat-number">{stats.inProgress}</h4>
-          </div>
-          <div className="stat-icon-wrapper">
-            <span className="stat-icon-emoji">🔧</span>
-          </div>
-        </Link>
-        <Link to="/work-orders/terminados" className="stat-card-mui stat-green">
-          <div className="stat-card-content">
-            <p className="stat-label">Servicios Terminados</p>
-            <h4 className="stat-number">{stats.completed}</h4>
-          </div>
-          <div className="stat-icon-wrapper">
-            <span className="stat-icon-emoji">✅</span>
-          </div>
-        </Link>
-        <Link to="/pilotos" className="stat-card-mui stat-blue">
-          <div className="stat-card-content">
-            <p className="stat-label">Pilotos Activos</p>
-            <h4 className="stat-number">{stats.activeClients}</h4>
-          </div>
-          <div className="stat-icon-wrapper">
-            <span className="stat-icon-emoji">🏍️</span>
-          </div>
-        </Link>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="dashboard-chart">
-          <ChartSection data={chartData} total={totalServices} />
-        </div>
-        <div className="dashboard-activity">
-          <div className="activity-table-wrapper">
-            <div className="activity-table-header">
-              <h3>Actividad Reciente</h3>
-              <span className="activity-filter">Hoy</span>
-            </div>
-            <table className="activity-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Piloto</th>
-                  <th>Servicio</th>
-                  <th>Fecha</th>
-                  <th>Horas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activities.map((item, index) => (
-                  <tr key={index}>
-                    <td className="activity-icon-cell">🏍️</td>
-                    <td className="pilot-cell">{item.pilotName}</td>
-                    <td className="service-cell">{item.serviceType}</td>
-                    <td className="date-cell">{formatDate(item.date)}</td>
-                    <td><span className="hours-badge">{item.hours}h</span></td>
-                  </tr>
+      <Card sx={{ borderRadius: 3, mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Órdenes Recientes
+          </Typography>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <TableSortLabel active={sortConfig.key === 'id'} direction={sortConfig.key === 'id' ? sortConfig.direction : 'asc'} onClick={() => handleSort('id')}>
+                      ID
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>Placa</TableCell>
+                  <TableCell>
+                    <TableSortLabel active={sortConfig.key === 'status'} direction={sortConfig.key === 'status' ? sortConfig.direction : 'asc'} onClick={() => handleSort('status')}>
+                      Estado
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel active={sortConfig.key === 'entryDate'} direction={sortConfig.key === 'entryDate' ? sortConfig.direction : 'asc'} onClick={() => handleSort('entryDate')}>
+                      Fecha
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => (
+                  <TableRow hover key={order.id} sx={{ cursor: 'pointer' }} onClick={() => navigate(`/work-orders/${order.id}`)}>
+                    <TableCell>#{order.id}</TableCell>
+                    <TableCell>
+                      <Chip label={order.bike?.plate || '-'} size="small" variant="outlined" />
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={order.status} color={STATUS_COLORS[order.status] || 'default'} size="small" />
+                    </TableCell>
+                    <TableCell>{order.entryDate}</TableCell>
+                    <TableCell align="right">${Number(order.total || 0).toFixed(2)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-            <Link to="/work-orders/historial" className="activity-footer-link">
-              Ver todo el historial →
-            </Link>
-          </div>
-        </div>
-      </div>
+                {!sortedOrders.length && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                      No hay órdenes
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            count={sortedOrders.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
+        </CardContent>
+      </Card>
 
-      <div className="dashboard-orders-section">
-        <div className="orders-section-header">
-          <h3>Órdenes Recientes</h3>
-          <Link to="/work-orders/historial" className="see-all-link">Ver todas →</Link>
-        </div>
-        <div className="orders-table-wrapper">
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Placa" sortKey="bike.plate" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Estado" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Fecha" sortKey="entryDate" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Total" sortKey="total" currentSort={sortConfig} onSort={handleSort} />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedOrders.map(order => (
-                <tr key={order.id} onClick={() => navigate(`/work-orders/${order.id}`)} style={{ cursor: 'pointer' }}>
-                  <td className="order-id-cell">#{order.id}</td>
-                  <td><span className="plate-badge">{order.bike?.plate}</span></td>
-                  <td><StatusBadge status={order.status} /></td>
-                  <td className="date-cell">{order.entryDate}</td>
-                  <td className="total-cell">${Number(order.total || 0).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      <Fab 
+        component={Link} 
+        to="/work-orders/new"
+        color="primary"
+        sx={{ 
+          position: 'fixed', 
+          right: 16, 
+          bottom: 16,
+          borderRadius: 3,
+          boxShadow: 4
+        }}
+      >
+        <AddIcon />
+      </Fab>
+    </Box>
   );
 }
 

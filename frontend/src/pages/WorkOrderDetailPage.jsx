@@ -64,6 +64,18 @@ function WorkOrderDetailPage() {
   };
 
   useEffect(() => { load(); }, [id, historyMeta.page, historyFilters.userId, historyFilters.startDate, historyFilters.endDate]);
+  
+  useEffect(() => {
+    const loadChecklist = async () => {
+      try {
+        const checklistRes = await api.get(`/work-orders/${id}/checklist`);
+        setChecklistItems(checklistRes.data?.data || checklistRes.data || []);
+      } catch (e) {
+        console.error('Error loading checklist:', e);
+      }
+    };
+    loadChecklist();
+  }, [id, order?.status]);
 
   const changeStatus = async (toStatus) => {
     setLoadingAction('status');
@@ -232,24 +244,28 @@ function WorkOrderDetailPage() {
         </div>
       )}
 
-      {activeTab === 'overview' && isPendiente && (
+      {activeTab === 'overview' && (
         <div className="card" style={{ marginBottom: 16 }}>
           <h3 className="card-title">Checklist de Items del Sistema</h3>
           <div className="checklist-grid">
             {systemItems.map((item) => {
               const checkedItem = checklistItems.find(c => c.checklistItemId === item.id);
+              const isDisabled = order?.status === 'ENTREGADA' || order?.status === 'CANCELADA';
               return (
                 <label key={item.id} className="checklist-item">
                   <input
                     type="checkbox"
                     checked={checkedItem?.checked || false}
                     onChange={(e) => toggleChecklistItem(item.id, e.target.checked)}
-                    disabled={loadingAction === item.id}
+                    disabled={loadingAction === item.id || isDisabled}
                   />
                   <span>{loadingAction === item.id ? 'Guardando...' : item.name}</span>
                 </label>
               );
             })}
+            {!systemItems.length && (
+              <p className="muted">No hay items de checklist configurados</p>
+            )}
           </div>
         </div>
       )}

@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import StatusBadge from '../components/StatusBadge';
 import { useToast } from '../components/Toast';
+import {
+  Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, TableSortLabel, Typography, Chip, IconButton, Tooltip, TablePagination,
+  TableFooter
+} from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EmailIcon from '@mui/icons-material/Email';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
@@ -22,53 +29,41 @@ const TITLE_MAP = {
   historial: 'Historial de Órdenes',
 };
 
-function SortableTh({ label, sortKey, currentSort, onSort }) {
-  const direction = currentSort.key === sortKey ? currentSort.direction : null;
-  
-  const handleClick = () => {
-    if (currentSort.key === sortKey) {
-      if (currentSort.direction === 'asc') {
-        onSort({ key: sortKey, direction: 'desc' });
-      } else {
-        onSort({ key: null, direction: null });
-      }
-    } else {
-      onSort({ key: sortKey, direction: 'asc' });
-    }
-  };
+const STATUS_COLORS = {
+  RECIBIDA: 'warning',
+  DIAGNOSTICO: 'info',
+  EN_PROCESO: 'primary',
+  LISTA: 'success',
+  ENTREGADA: 'default',
+  CANCELADA: 'error',
+};
 
-  return (
-    <th onClick={handleClick} style={{ cursor: 'pointer', userSelect: 'none' }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        {label}
-        {direction === 'asc' && <span>↑</span>}
-        {direction === 'desc' && <span>↓</span>}
-        {!direction && <span style={{ opacity: 0.3 }}>↕</span>}
-      </span>
-    </th>
-  );
-}
+function OrdersByStatusPage() {
+  const { status } = React.useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return { status: params.get('status') };
+  }, []);
 
-function OrdersByStatusPage({ status, type }) {
-  const { success, error: showError } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const { success, error: showError } = useToast();
   const [viewOrder, setViewOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loadingAction, setLoadingAction] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    load();
-  }, [status]);
+  const showActions = status === 'terminados';
 
   const load = async () => {
     setLoading(true);
     try {
       let param = {};
       if (status) param.status = STATUS_MAP[status];
-      const { data } = await api.get('/work-orders', { params: { ...param, pageSize: 50 } });
+      const { data } = await api.get('/work-orders', { params: { ...param, pageSize: 100 } });
       const ordersData = data?.data || data;
       setOrders(Array.isArray(ordersData) ? ordersData : []);
       setError('');
@@ -80,9 +75,31 @@ function OrdersByStatusPage({ status, type }) {
     }
   };
 
-  const handleSort = (config) => {
-    setSortConfig(config);
+  useEffect(() => {
+    load();
+  }, [status]);
+
+  const handleSort = (sortKey) => {
+    if (sortConfig.key === sortKey) {
+      if (sortConfig.direction === 'asc') {
+        setSortConfig({ key: sortKey, direction: 'desc' });
+      } else {
+        setSortConfig({ key: null, direction: null });
+      }
+    } else {
+      setSortConfig({ key: sortKey, direction: 'asc' });
+    }
   };
+
+  const sortedOrders = React.useMemo(() => {
+    if (!sortConfig.key || !sortConfig.direction) return orders;
+    return [...orders].sort((a, b) => {
+      const aVal = getNestedValue(a, sortConfig.key) || '';
+      const bVal = getNestedValue(b, sortConfig.key) || '';
+      const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return sortConfig.direction === 'asc' ? cmp : -cmp;
+    });
+  }, [orders, sortConfig]);
 
   const handleView = async (order) => {
     setLoadingAction('view');
@@ -105,22 +122,6 @@ function OrdersByStatusPage({ status, type }) {
     }
   };
 
-  const handleChangeStatus = async (newStatus) => {
-    if (!newStatus) return;
-    setLoadingAction('status');
-    try {
-      await api.patch(`/work-orders/${viewOrder.id}/status`, { toStatus: newStatus, note: '' });
-      success(`Estado cambiado a ${newStatus}`);
-      setViewOrder(null);
-      setOrderDetails(null);
-      load();
-    } catch (e) {
-      showError(e.response?.data?.message || 'Error cambiando estado');
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
   const handleEmail = (order) => {
     success(`Enviando reporte por correo a ${order.bike?.client?.email || 'cliente'}`);
   };
@@ -129,209 +130,116 @@ function OrdersByStatusPage({ status, type }) {
     success(`Generando PDF para orden #${order.id}`);
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es', { 
-      day: 'numeric', 
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const sortedOrders = sortConfig.key
-    ? [...orders].sort((a, b) => {
-        let aVal = getNestedValue(a, sortConfig.key) ?? '';
-        let bVal = getNestedValue(b, sortConfig.key) ?? '';
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-        return String(aVal).toLowerCase().localeCompare(String(bVal).toLowerCase()) * (sortConfig.direction === 'asc' ? 1 : -1);
-      })
-    : orders;
-
-  const showActions = status === 'terminados';
-
   return (
-    <div className="content-grid">
-      <div className="page-hero">
-        <div>
-          <h1 className="page-title">{TITLE_MAP[status] || 'Órdenes'}</h1>
-          <p className="page-description">Lista de órdenes de trabajo según su estado.</p>
-        </div>
-      </div>
+    <Box sx={{ width: '100%', p: { xs: 1, sm: 2, md: 3 } }}>
+      <Box sx={{ mb: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            {TITLE_MAP[status] || 'Órdenes'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Lista de órdenes según su estado
+          </Typography>
+        </Box>
+      </Box>
 
-      {loading && <div className="card">Cargando...</div>}
-      {error && <div className="alert error">{error}</div>}
+      {loading && (
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Typography>Cargando...</Typography>
+        </Box>
+      )}
+
+      {error && (
+        <Box sx={{ p: 2, bgcolor: 'error.lighter', borderRadius: 2, color: 'error.main', mb: 2 }}>
+          {error}
+        </Box>
+      )}
 
       {!loading && !error && (
-        <div className="card table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <SortableTh label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Placa" sortKey="bike.plate" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Estado" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Fecha" sortKey="entryDate" currentSort={sortConfig} onSort={handleSort} />
-                <SortableTh label="Total" sortKey="total" currentSort={sortConfig} onSort={handleSort} />
-                {showActions && <th>Acciones</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {sortedOrders.map((order) => (
-                <tr key={order.id}>
-                  <td>{order.id}</td>
-                  <td><Link to={`/work-orders/${order.id}`} className="chip">{order.bike?.plate}</Link></td>
-                  <td><StatusBadge status={order.status} /></td>
-                  <td>{order.entryDate}</td>
-                  <td>${Number(order.total || 0).toFixed(2)}</td>
+        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 1 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <TableSortLabel active={sortConfig.key === 'id'} direction={sortConfig.key === 'id' ? sortConfig.direction : 'asc'} onClick={() => handleSort('id')}>
+                    ID
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel active={sortConfig.key === 'bike.plate'} direction={sortConfig.key === 'bike.plate' ? sortConfig.direction : 'asc'} onClick={() => handleSort('bike.plate')}>
+                    Placa
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel active={sortConfig.key === 'status'} direction={sortConfig.key === 'status' ? sortConfig.direction : 'asc'} onClick={() => handleSort('status')}>
+                    Estado
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel active={sortConfig.key === 'entryDate'} direction={sortConfig.key === 'entryDate' ? sortConfig.direction : 'asc'} onClick={() => handleSort('entryDate')}>
+                    Fecha
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="right">
+                  <TableSortLabel active={sortConfig.key === 'total'} direction={sortConfig.key === 'total' ? sortConfig.direction : 'asc'} onClick={() => handleSort('total')}>
+                    Total
+                  </TableSortLabel>
+                </TableCell>
+                {showActions && <TableCell align="center">Acciones</TableCell>}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => (
+                <TableRow key={order.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/work-orders/${order.id}`)}>
+                  <TableCell>#{order.id}</TableCell>
+                  <TableCell>
+                    <Chip label={order.bike?.plate || '-'} size="small" variant="outlined" />
+                  </TableCell>
+                  <TableCell>
+                    <Chip label={order.status} color={STATUS_COLORS[order.status] || 'default'} size="small" />
+                  </TableCell>
+                  <TableCell>{order.entryDate}</TableCell>
+                  <TableCell align="right">${Number(order.total || 0).toFixed(2)}</TableCell>
                   {showActions && (
-                    <td>
-                      <div className="action-buttons">
-                        <button 
-                          className="ghost small icon-btn" 
-                          onClick={() => handleEmail(order)}
-                          title="Enviar correo"
-                          style={{ color: '#3b82f6' }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                            <polyline points="22,6 12,13 2,6"/>
-                          </svg>
-                        </button>
-                        <button 
-                          className="ghost small icon-btn" 
-                          onClick={() => handlePDF(order)}
-                          title="Generar PDF"
-                          style={{ color: '#ef4444' }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10 9 9 9 8 9"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
+                    <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                      <Tooltip title="Enviar correo">
+                        <IconButton size="small" onClick={() => handleEmail(order)} sx={{ color: 'primary.main' }}>
+                          <EmailIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Generar PDF">
+                        <IconButton size="small" onClick={() => handlePDF(order)} sx={{ color: 'error.main' }}>
+                          <PictureAsPdfIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
               {!sortedOrders.length && (
-                <tr>
-                  <td colSpan={showActions ? 6 : 5} className="muted" style={{ textAlign: 'center', padding: 28 }}>
+                <TableRow>
+                  <TableCell colSpan={showActions ? 6 : 5} align="center" sx={{ py: 4 }}>
                     No hay órdenes
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  count={orders.length}
+                  page={page}
+                  onPageChange={(e, newPage) => setPage(newPage)}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </TableContainer>
       )}
-
-      {viewOrder && orderDetails && (
-        <div className="modal-overlay" onClick={() => { setViewOrder(null); setOrderDetails(null); }}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
-            <div className="modal-header">
-              <h3>Servicio #{viewOrder.id}</h3>
-              <button className="modal-close" onClick={() => { setViewOrder(null); setOrderDetails(null); }}>×</button>
-            </div>
-            <div className="modal-body">
-              <div style={{ marginBottom: 16, color: '#6b7280', fontSize: 14 }}>
-                {formatDate(viewOrder.entryDate)}
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 'bold', color: '#1f2937' }}>
-                    {viewOrder.serviceType || 'ALISTAMIENTO'}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                    <StatusBadge status={viewOrder.status} />
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ color: '#6b7280', fontSize: 12 }}>Piloto</div>
-                  <div style={{ fontWeight: 'bold' }}>{viewOrder.bike?.client?.name || viewOrder.pilotName || '-'}</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
-                <div style={{ background: '#f3f4f6', padding: 12, borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ color: '#6b7280', fontSize: 12 }}>Horas</div>
-                  <div style={{ fontWeight: 'bold', fontSize: 18 }}>{viewOrder.hoursUsed || 0}h</div>
-                </div>
-                <div style={{ background: '#f3f4f6', padding: 12, borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ color: '#6b7280', fontSize: 12 }}>H. registradas</div>
-                  <div style={{ fontWeight: 'bold', fontSize: 18 }}>{viewOrder.hoursRegistered || 0}h</div>
-                </div>
-                <div style={{ background: '#f3f4f6', padding: 12, borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ color: '#6b7280', fontSize: 12 }}>Total</div>
-                  <div style={{ fontWeight: 'bold', fontSize: 18 }}>${Number(viewOrder.total || 0).toFixed(2)}</div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <h4 style={{ marginBottom: 12, fontSize: 14, color: '#374151' }}>
-                  Checklist ({orderDetails.checklistItems?.length || 0})
-                </h4>
-                <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, maxHeight: 200, overflowY: 'auto' }}>
-                  {orderDetails.checklistItems?.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #e5e7eb' }}>
-                      <input type="checkbox" checked={item.completed || false} readOnly />
-                      <span style={{ color: item.completed ? '#22c55e' : '#6b7280' }}>{item.name}</span>
-                    </div>
-                  ))}
-                  {!orderDetails.checklistItems?.length && (
-                    <div style={{ color: '#9ca3af', textAlign: 'center', padding: 12 }}>Sin items</div>
-                  )}
-                </div>
-              </div>
-
-              {orderDetails.allowed?.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <h4 style={{ marginBottom: 12, fontSize: 14, color: '#374151' }}>
-                    Cambiar Estado
-                  </h4>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {orderDetails.allowed.map((newStatus) => (
-                      <button 
-                        key={newStatus} 
-                        className="button" 
-                        onClick={() => handleChangeStatus(newStatus)}
-                        disabled={loadingAction === 'status'}
-                        style={{ backgroundColor: newStatus === 'LISTA' ? '#22c55e' : newStatus === 'ENTREGADA' ? '#3b82f6' : '#f59e0b' }}
-                      >
-                        {newStatus === 'DIAGNOSTICO' ? 'Iniciar Diagnóstico' : 
-                         newStatus === 'EN_PROCESO' ? 'En Proceso' : 
-                         newStatus === 'LISTA' ? 'Marcar Lista' : 
-                         newStatus === 'ENTREGADA' ? 'Entregada' : newStatus}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="ghost" onClick={() => { setViewOrder(null); setOrderDetails(null); }}>Cerrar</button>
-              {showActions && (
-                <>
-                  <button className="button" style={{ backgroundColor: '#3b82f6' }} onClick={() => handleEmail(viewOrder)}>
-                    Enviar correo
-                  </button>
-                  <button className="button" style={{ backgroundColor: '#ef4444' }} onClick={() => handlePDF(viewOrder)}>
-                    Generar PDF
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </Box>
   );
 }
 
