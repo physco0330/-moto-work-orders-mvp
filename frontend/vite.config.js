@@ -8,5 +8,11 @@ export default defineConfig({
   base: '/',
   build: {
     emptyOutDir: true,
+    rollupOptions: {
+      external: ['jspdf'],
+    },
+  },
+  optimizeDeps: {
+    include: ['jspdf'],
   },
 });
