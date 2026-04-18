@@ -51,31 +51,33 @@ const start = async () => {
           console.log('ChecklistItems table already exists');
         }
 
-        const columnsResult = await sequelize.query(`
-          SELECT column_name FROM information_schema.columns 
-          WHERE table_name = 'work_orders' AND table_schema = 'public';
-        `, { type: sequelize.QueryTypes.SELECT });
+        try {
+          const wcResult = await sequelize.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'work_orders' AND table_schema = 'public';
+          `, { type: sequelize.QueryTypes.SELECT });
 
-        const columns = columnsResult.map(c => c.column_name);
-        
-        if (!columns.includes('service_type')) {
-          console.log('Adding service_type column...');
-          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN service_type VARCHAR(100);`);
-        }
-        if (!columns.includes('pilot_name')) {
-          console.log('Adding pilot_name column...');
-          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN pilot_name VARCHAR(100);`);
-        }
-        if (!columns.includes('hours_registered')) {
-          console.log('Adding hours_registered column...');
-          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_registered DECIMAL(10,2) DEFAULT 0;`);
-        }
-        if (!columns.includes('hours_used')) {
-          console.log('Adding hours_used column...');
-          await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_used DECIMAL(10,2) DEFAULT 0;`);
-        }
-        if (columns.includes('service_type') || columns.includes('pilot_name')) {
-          console.log('Work orders columns already exist');
+          const wcols = wcResult.map(c => c.column_name);
+          console.log('Current work_orders columns:', wcols);
+          
+          if (!wcols.includes('service_type')) {
+            await sequelize.query(`ALTER TABLE work_orders ADD COLUMN service_type VARCHAR(100);`);
+            console.log('Added service_type');
+          }
+          if (!wcols.includes('pilot_name')) {
+            await sequelize.query(`ALTER TABLE work_orders ADD COLUMN pilot_name VARCHAR(100);`);
+            console.log('Added pilot_name');
+          }
+          if (!wcols.includes('hours_registered')) {
+            await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_registered DECIMAL(10,2) DEFAULT 0;`);
+            console.log('Added hours_registered');
+          }
+          if (!wcols.includes('hours_used')) {
+            await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_used DECIMAL(10,2) DEFAULT 0;`);
+            console.log('Added hours_used');
+          }
+        } catch(e) {
+          console.log('Columns check error:', e.message);
         }
 
         const bikeColumnsResult = await sequelize.query(`
