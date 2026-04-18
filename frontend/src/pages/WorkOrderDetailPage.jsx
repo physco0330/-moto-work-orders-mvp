@@ -259,12 +259,13 @@ function WorkOrderDetailPage() {
           <h3 className="card-title">Checklist de Items del Sistema</h3>
           <div className="checklist-grid">
             {systemItems.map((item) => {
-              const checkedItem = checklistItems.find(c => c.checklistItemId === item.id);
+              const checkedItem = checklistItems.find(c => Number(c.checklistItemId) === Number(item.id) || Number(c.id) === Number(item.id));
+              const isChecked = checkedItem?.checked === true || checkedItem?.checked === 1;
               return (
                 <label key={item.id} className="checklist-item">
                   <input
                     type="checkbox"
-                    checked={checkedItem?.checked || false}
+                    checked={isChecked}
                     onChange={(e) => canEditChecklist && toggleChecklistItem(item.id, e.target.checked)}
                     disabled={loadingAction === item.id || !canEditChecklist}
                   />

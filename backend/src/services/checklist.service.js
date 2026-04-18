@@ -10,8 +10,17 @@ const getChecklistByWorkOrder = async (workOrderId) => {
     LEFT JOIN "WorkOrderChecklistItems" wci ON wci.checklist_item_id = ci.id AND wci.work_order_id = :workOrderId
     WHERE ci.active = true
     ORDER BY ci.id
-  `, { replacements: { workOrderId }, type: sequelize.QueryTypes.SELECT });
-  return result;
+  `, { 
+    replacements: { workOrderId: parseInt(workOrderId) }, 
+    type: sequelize.QueryTypes.SELECT 
+  });
+  
+  return result.map(item => ({
+    ...item,
+    id: item.id,
+    checklistItemId: item.id,
+    checked: Boolean(item.checked)
+  }));
 };
 
 const setChecklistItem = async (workOrderId, checklistItemId, checked) => {
