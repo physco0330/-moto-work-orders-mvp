@@ -11,20 +11,13 @@ function CreateWorkOrderPage() {
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
   
-  const [plateSearch, setPlateSearch] = useState('');
-  const [bike, setBike] = useState(null);
-  const [allBikes, setAllBikes] = useState([]);
-  const [client, setClient] = useState({ name: '', phone: '', email: '' });
-  const [bikeData, setBikeData] = useState({ plate: '', brand: '', model: '', cylinder: '' });
-  const [faultDescription, setFaultDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [pilotos, setPilotos] = useState([]);
-  const [selectedPilotId, setSelectedPilotId] = useState('');
-  const [pilotName, setPilotName] = useState('');
+  const [selectedPilot, setSelectedPilot] = useState(null);
+  const [allBikes, setAllBikes] = useState([]);
+  const [selectedBike, setSelectedBike] = useState(null);
   const [serviceType, setServiceType] = useState('');
-  const [hoursRegistered, setHoursRegistered] = useState(0);
-  const [systemItems, setSystemItems] = useState([]);
-  const [checklistItems, setChecklistItems] = useState([]);
+  const [hoursUsed, setHoursUsed] = useState(0);
   const [ownItems, setOwnItems] = useState([]);
   const [newOwnItem, setNewOwnItem] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -36,13 +29,11 @@ function CreateWorkOrderPage() {
   const loadInitial = async () => {
     setLoading(true);
     try {
-      const [clientsRes, itemsRes, bikesRes] = await Promise.all([
+      const [clientsRes, bikesRes] = await Promise.all([
         api.get('/clients'),
-        api.get('/checklist-items'),
         api.get('/bikes', { params: { pageSize: 100 } })
       ]);
       setPilotos(clientsRes.data.data || clientsRes.data);
-      setSystemItems(Array.isArray(itemsRes.data) ? itemsRes.data : (itemsRes.data?.data || []));
       setAllBikes(bikesRes.data?.data || bikesRes.data || []);
     } catch (e) {
       showError('Error al cargar datos');
@@ -51,35 +42,33 @@ function CreateWorkOrderPage() {
     }
   };
 
-  const handleBikeSelect = (event, selectedBike) => {
-    if (selectedBike) {
-      setBike(selectedBike);
-      setClient({
-        name: selectedBike.client?.name || '',
-        phone: selectedBike.client?.phone || '',
-        email: selectedBike.client?.email || '',
-      });
-      setBikeData({
-        plate: selectedBike.plate || '',
-        brand: selectedBike.brand || '',
-        model: selectedBike.model || '',
-        cylinder: selectedBike.cylinder || '',
-      });
-      const motoHours = selectedBike.hours || 0;
-      setHoursRegistered(motoHours);
-      success(`Moto seleccionada: ${selectedBike.plate} - ${motoHours} horas`);
+  const handlePilotSelect = (event, selectedPilot) => {
+    if (selectedPilot) {
+      setSelectedPilot(selectedPilot);
+      const pilotBikes = allBikes.filter(b => b.clientId === selectedPilot.id || b.client?.id === selectedPilot.id);
+      if (pilotBikes.length > 0) {
+        setSelectedBike(pilotBikes[0]);
+        setHoursUsed(pilotBikes[0].hours || 0);
+        success(`Moto cargada: ${pilotBikes[0].plate} - ${pilotBikes[0].hours || 0} horas`);
+      } else {
+        setSelectedBike(null);
+        setHoursUsed(0);
+      }
     } else {
-      setBike(null);
-      setBikeData({ plate: '', brand: '', model: '', cylinder: '' });
-      setHoursRegistered(0);
+      setSelectedPilot(null);
+      setSelectedBike(null);
+      setHoursUsed(0);
     }
   };
 
-  const toggleChecklistItem = (itemId) => {
-    if (checklistItems.includes(itemId)) {
-      setChecklistItems(checklistItems.filter(id => id !== itemId));
+  const handleBikeSelect = (event, selectedBike) => {
+    if (selectedBike) {
+      setSelectedBike(selectedBike);
+      setHoursUsed(selectedBike.hours || 0);
+      success(`Moto seleccionada: ${selectedBike.plate}`);
     } else {
-      setChecklistItems([...checklistItems, itemId]);
+      setSelectedBike(null);
+      setHoursUsed(0);
     }
   };
 
@@ -100,97 +89,28 @@ function CreateWorkOrderPage() {
     success('Item eliminado');
   };
 
-  const findBike = async () => {
-    if (!plateSearch.trim()) return;
-    setLoading(true);
-    try {
-      const { data } = await api.get('/bikes', { params: { plate: plateSearch } });
-      const found = data[0] || null;
-      setBike(found);
-      if (found) {
-        setClient({
-          name: found.client?.name || '',
-          phone: found.client?.phone || '',
-          email: found.client?.email || '',
-        });
-        setBikeData({
-          plate: found.plate || '',
-          brand: found.brand || '',
-          model: found.model || '',
-          cylinder: found.cylinder || '',
-        });
-        success(`Moto encontrada: ${found.plate}`);
-      } else {
-        success('No se encontro la moto. Puedes registrarla manualmente.');
-      }
-    } catch (e) {
-      showError(e.response?.data?.message || 'No se pudo buscar la moto');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePilotChange = (e) => {
-    const id = e.target.value;
-    setSelectedPilotId(id);
-    if (id) {
-      const piloto = pilotos.find(p => p.id.toString() === id);
-      setPilotName(piloto?.name || '');
-    } else {
-      setPilotName('');
-    }
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    if (!selectedPilotId) {
+    if (!selectedPilot) {
       showError('Debes seleccionar un piloto');
+      return;
+    }
+    
+    if (!selectedBike) {
+      showError('Debes seleccionar una moto');
       return;
     }
     
     setLoading(true);
     try {
-      let payload;
-      
-      if (bike?.id) {
-        payload = { 
-          motoId: bike.id, 
-          faultDescription,
-          pilotName: pilotName || null,
-          serviceType: serviceType || null,
-          hoursRegistered: Number(hoursRegistered) || 0,
-          ownItems,
-          checklistItemIds: checklistItems,
-        };
-      } else {
-        const selectedPilot = pilotos.find(p => p.id.toString() === selectedPilotId);
-        
-        if (!bikeData.plate || !bikeData.model) {
-          showError('Debes ingresar la placa y modelo de la moto');
-          setLoading(false);
-          return;
-        }
-        
-        payload = {
-          client: {
-            name: selectedPilot?.name || pilotName,
-            phone: selectedPilot?.phone || '',
-            email: selectedPilot?.email || '',
-          },
-          bike: { 
-            ...bikeData, 
-            plate: bikeData.plate.toUpperCase(),
-            cylinder: bikeData.cylinder === '' ? null : Number(bikeData.cylinder)
-          },
-          faultDescription,
-          pilotName: selectedPilot?.name || pilotName || null,
-          serviceType: serviceType || null,
-          hoursRegistered: Number(hoursRegistered) || 0,
-          ownItems,
-          checklistItemIds: checklistItems,
-        };
-      }
+      const payload = { 
+        motoId: selectedBike.id, 
+        pilotName: selectedPilot.name,
+        serviceType: serviceType || null,
+        hoursUsed: Number(hoursUsed) || 0,
+        ownItems,
+      };
 
       const { data } = await api.post('/work-orders', payload);
       success('Orden creada exitosamente');
@@ -204,13 +124,27 @@ function CreateWorkOrderPage() {
 
   return (
     <div>
-      <SectionTitle title="Nuevo Servicio" subtitle="Completa el formulario de alistamiento o reparacion" />
+      <SectionTitle title="Nuevo Servicio" subtitle="Completa el formulario de servicio" />
 
       <div className="card" style={{ marginBottom: 16 }}>
         <h3>Datos del servicio</h3>
         <div className="form-stack">
           <label>
-            Moto (buscar por placa)
+            Piloto *
+            <Autocomplete
+              options={pilotos.filter(p => p.active !== false)}
+              getOptionLabel={(option) => option.name || ''}
+              onChange={handlePilotSelect}
+              renderInput={(params) => (
+                <TextField {...params} placeholder="Buscar piloto" size="small" />
+              )}
+              disabled={loading}
+              sx={{ marginTop: 1 }}
+            />
+          </label>
+          
+          <label>
+            Moto *
             <Autocomplete
               options={allBikes}
               getOptionLabel={(option) => option.plate || ''}
@@ -220,59 +154,43 @@ function CreateWorkOrderPage() {
               )}
               disabled={loading}
               sx={{ marginTop: 1 }}
+              value={selectedBike}
             />
           </label>
-          {bike && <div className="alert success">Moto encontrada: {bike.plate} - {bike.client?.name}</div>}
           
-          {!bike && (
-            <div className="grid two" style={{ marginTop: 12 }}>
-              <label>Placa *
-                <input 
-                  value={bikeData.plate} 
-                  onChange={(e) => setBikeData({...bikeData, plate: e.target.value})} 
-                  placeholder="Ej: ABC123"
-                  disabled={loading}
-                />
-              </label>
-              <label>Modelo *
-                <input 
-                  value={bikeData.model} 
-                  onChange={(e) => setBikeData({...bikeData, model: e.target.value})} 
-                  placeholder="Ej: CRF 450R"
-                  disabled={loading}
-                />
-              </label>
+          {selectedBike && (
+            <div className="alert success">
+              {selectedBike.plate} - {selectedBike.brand} {selectedBike.model} - {selectedBike.hours || 0} horas
             </div>
           )}
-
-          <label>Piloto *
-            <select value={selectedPilotId} onChange={handlePilotChange} required disabled={loading}>
-              <option value="">Seleccionar piloto...</option>
-              {pilotos.filter(p => p.active !== false).map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>Horas de la moto
-            <input type="number" value={hoursRegistered} onChange={(e) => setHoursRegistered(e.target.value)} placeholder="Horas" disabled={loading || !!bike} style={{ backgroundColor: bike ? '#f5f5f5' : 'white' }} />
+          
+          <label>
+            Horas de Uso *
+            <input 
+              type="number" 
+              value={hoursUsed} 
+              onChange={(e) => setHoursUsed(e.target.value)} 
+              placeholder="Horas"
+              disabled={loading} 
+            />
           </label>
         </div>
       </div>
 
       <div className="grid two">
         <div className="card">
-          <h3>Tipo de Servicio</h3>
+          <h3>ALISTAMIENTO</h3>
           <select value={serviceType} onChange={(e) => setServiceType(e.target.value)} style={{ width: '100%' }} disabled={loading}>
-            <option value="">Seleccionar tipo...</option>
+            <option value="">Tipo de Servicio *</option>
             <option value="ALISTAMIENTO">Alistamiento</option>
-            <option value="REPARACION">Reparación</option>
             <option value="MANTENIMIENTO">Mantenimiento</option>
+            <option value="REPARACION">Reparación</option>
             <option value="OTRO">Otro</option>
           </select>
         </div>
 
         <div className="card">
-          <h3>Items Propios del Servicio</h3>
+          <h3>Ítems Propios del Servicio</h3>
           <div className="inline-form" style={{ marginBottom: 12 }}>
             <input
               value={newOwnItem}
@@ -299,24 +217,6 @@ function CreateWorkOrderPage() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      <div className="card" style={{ marginBottom: 16 }}>
-        <h3>Checklist de Ítems del Sistema</h3>
-        <div className="checklist-grid">
-          {systemItems.map(item => (
-            <label key={item.id} className="checklist-item">
-              <input
-                type="checkbox"
-                checked={checklistItems.includes(item.id)}
-                onChange={() => toggleChecklistItem(item.id)}
-                disabled={loading}
-              />
-              <span>{item.name}</span>
-            </label>
-          ))}
-          {!systemItems.length && <p className="muted">No hay items disponibles</p>}
         </div>
       </div>
 

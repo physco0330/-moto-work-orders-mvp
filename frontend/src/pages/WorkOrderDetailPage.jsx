@@ -242,18 +242,6 @@ function WorkOrderDetailPage() {
         </div>
       </div>
 
-      {isPendiente && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <button 
-            className="button" 
-            onClick={() => setShowEditModal(true)}
-            disabled={loadingAction === 'edit'}
-          >
-            {loadingAction === 'edit' ? 'Guardando...' : 'Editar Servicio'}
-          </button>
-        </div>
-      )}
-
       {activeTab === 'overview' && (
         <div className="card" style={{ marginBottom: 16 }}>
           <h3 className="card-title">Checklist de Items del Sistema</h3>
