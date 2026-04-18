@@ -293,8 +293,20 @@ label { display: grid; gap: 6px; color: #334155; }
   background: #f8fafc; 
 }
 
-.table-wrap tbody tr:last-child td { 
-  border-bottom: none; 
+.table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.MuiIconButton-root {
+  background: transparent !important;
+  border: 1px solid #e2e8f0 !important;
+  margin: 2px !important;
+}
+.MuiIconButton-root:hover {
+  background: #f1f5f9 !important;
+}
+.MuiSvgIcon-root {
+  font-size: 18px !important;
 }
 
 /* Contenedor de tabla con scroll en móvil */

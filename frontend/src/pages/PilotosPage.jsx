@@ -191,14 +191,14 @@ function PilotosPage() {
                     </TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                        <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)} sx={{ p: 0.5 }}>
-                          <EditIcon fontSize="small" />
+                        <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)}>
+                          <EditIcon />
                         </IconButton>
-                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })} sx={{ p: 0.5 }}>
+                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: p.id, name: p.name })}>
                           {p.active !== false ? (
-                            <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+                            <DeleteIcon />
                           ) : (
-                            <CheckCircleIcon fontSize="small" sx={{ color: '#16a34a' }} />
+                            <CheckCircleIcon />
                           )}
                         </IconButton>
                       </Box>

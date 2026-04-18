@@ -214,11 +214,11 @@ function MotocicletasPage() {
                     <TableCell sx={{ fontSize: '0.8rem' }}>{m.client?.name || '-'}</TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                        <IconButton size="small" onClick={() => openEdit(m)} sx={{ p: 0.5 }}>
-                          <EditIcon fontSize="small" />
+                        <IconButton size="small" onClick={() => openEdit(m)}>
+                          <EditIcon />
                         </IconButton>
-                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })} sx={{ p: 0.5 }}>
-                          <DeleteIcon fontSize="small" />
+                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}>
+                          <DeleteIcon />
                         </IconButton>
                       </Box>
                     </TableCell>

@@ -127,12 +127,12 @@ function OrdersByStatusPage() {
                       <TableCell align="center" onClick={(e) => e.stopPropagation()}>
                         <Tooltip title="Email">
                           <IconButton size="small" onClick={() => handleEmail(order)}>
-                            <EmailIcon fontSize="small" />
+                            <EmailIcon />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="PDF">
                           <IconButton size="small" onClick={() => handlePDF(order)}>
-                            <PictureAsPdfIcon fontSize="small" />
+                            <PictureAsPdfIcon />
                           </IconButton>
                         </Tooltip>
                       </TableCell>
