@@ -3,8 +3,8 @@ import api from '../services/api';
 import { useToast } from '../components/Toast';
 import {
   Box, Card, CardContent, Typography, Button, TextField, Dialog, DialogTitle,
-  DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, IconButton, Chip, Fab, Grid, FormControl, InputLabel, 
+  DialogContent, DialogActions, Table, TableBody, TableCell,
+  TableHead, TableRow, IconButton, Chip, Fab, Grid, FormControl, InputLabel,
   Select, MenuItem
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -118,6 +118,30 @@ function MotocicletasPage() {
     }
   };
 
+  const renderMotoCard = (moto) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'primary.lighter', color: 'primary.main' }}>
+          <TwoWheelerIcon />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body1" sx={{ fontWeight: 600 }}>{moto.model}</Typography>
+          <Typography variant="body2" color="text.secondary">{moto.brand} {moto.year || ''}</Typography>
+        </Box>
+        <Chip label={moto.plate} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+        <Typography variant="body2" color="text.secondary">
+          {moto.client?.name || '-'}
+        </Typography>
+        <Typography variant="body2" sx={{ ml: 'auto', fontWeight: 500 }}>
+          {moto.hours || 0}h
+        </Typography>
+      </Box>
+    </Box>
+  );
+
   return (
     <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
       <Box sx={{ 
@@ -165,66 +189,61 @@ function MotocicletasPage() {
 
       <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflowX: 'auto' }}>
         <CardContent sx={{ p: { xs: 1, md: 2 } }}>
-          <TableContainer sx={{ overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: { xs: 600, sm: 'auto' } }}>
-              <TableHead>
-                <TableRow sx={{ bgcolor: '#f1f5f9' }}>
-                  <TableCell sx={{ fontWeight: 600, width: 50 }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Placa</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Marca</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Modelo</TableCell>
-                  <TableCell sx={{ fontWeight: 600, width: 50 }}>Año</TableCell>
-                  <TableCell sx={{ fontWeight: 600, width: 50 }}>Horas</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Piloto</TableCell>
-                  <TableCell sx={{ fontWeight: 600, width: 70 }} align="center">Acciones</TableCell>
+          <TableCards
+            data={filteredMotos}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            onEdit={openEdit}
+            onDelete={(m) => setDeleteConfirm({ id: m.id, name: m.model })}
+            renderItem={renderMotoCard}
+            keyField="id"
+          >
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f1f5f9' }}>
+                <TableCell sx={{ fontWeight: 600, width: 50 }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Placa</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Marca</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Modelo</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 50 }}>Año</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 50 }}>Horas</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Piloto</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 70 }} align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredMotos.map((m) => (
+                <TableRow key={m.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                  <TableCell>#{m.id}</TableCell>
+                  <TableCell>
+                    <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.7rem' }} />
+                  </TableCell>
+                  <TableCell>{m.brand || '-'}</TableCell>
+                  <TableCell>{m.model}</TableCell>
+                  <TableCell>{m.year || '-'}</TableCell>
+                  <TableCell>{m.hours || 0}h</TableCell>
+                  <TableCell sx={{ fontSize: '0.8rem' }}>{m.client?.name || '-'}</TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                      <IconButton size="small" onClick={() => openEdit(m)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredMotos.map((m) => (
-                  <TableRow key={m.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
-                    <TableCell>#{m.id}</TableCell>
-                    <TableCell>
-                      <Chip label={m.plate} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.7rem' }} />
-                    </TableCell>
-                    <TableCell>{m.brand || '-'}</TableCell>
-                    <TableCell>{m.model}</TableCell>
-                    <TableCell>{m.year || '-'}</TableCell>
-                    <TableCell>{m.hours || 0}h</TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem' }}>{m.client?.name || '-'}</TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                        <IconButton size="small" onClick={() => openEdit(m)}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => setDeleteConfirm({ id: m.id, name: m.model })}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {!filteredMotos.length && (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                      No hay motocicletas
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {pagination && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexWrap: 'wrap', gap: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Mostrando {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} de {pagination.total}
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Button size="small" variant="outlined" disabled={pagination.page <= 1} onClick={() => setPage(p => p - 1)}>Anterior</Button>
-                <Typography variant="body2">Página {pagination.page} de {pagination.totalPages}</Typography>
-                <Button size="small" variant="outlined" disabled={pagination.page >= pagination.totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</Button>
-              </Box>
-            </Box>
-          )}
+              ))}
+              {!filteredMotos.length && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    No hay motocicletas
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </TableCards>
         </CardContent>
       </Card>
 
