@@ -8,6 +8,8 @@ import {
 } from '@mui/material';
 import TableCards from '../components/TableCards';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 
 function ItemsPage() {
@@ -39,6 +41,8 @@ function ItemsPage() {
   const handlePageChange = (newPage) => setPage(newPage);
   const handleRowsPerPageChange = (newPageSize) => { setPageSize(newPageSize); setPage(1); };
 
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
   const handleToggleActive = async (item) => {
     setLoadingAction(item.id);
     try {
@@ -47,6 +51,21 @@ function ItemsPage() {
       success(item.active ? `"${item.name}" desactivado` : `"${item.name}" activado`);
     } catch (e) {
       showError(e.response?.data?.message || 'Error actualizando');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    setLoadingAction('deleting');
+    try {
+      await api.delete(`/checklist-items/${deleteConfirm.id}`);
+      setItems(items.filter(i => i.id !== deleteConfirm.id));
+      setDeleteConfirm(null);
+      success('Ítem eliminado');
+    } catch (e) {
+      showError(e.response?.data?.message || 'Error eliminando');
     } finally {
       setLoadingAction(null);
     }
@@ -71,12 +90,24 @@ function ItemsPage() {
   const renderItemCard = (item) => (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="caption" color="text.secondary">ID</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 700 }}>#{item.id}</Typography>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
         <Typography variant="caption" color="text.secondary">Nombre</Typography>
         <Typography variant="body2" sx={{ fontWeight: 500 }}>{item.name}</Typography>
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="caption" color="text.secondary">Estado</Typography>
         <Chip label={item.active ? 'Activo' : 'Inactivo'} size="small" sx={{ bgcolor: item.active ? '#dcfce7' : '#f3f4f6', color: item.active ? '#16a34a' : '#6b7280', fontWeight: 500 }} />
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'center' }}>
+        <IconButton size="small" onClick={() => handleToggleActive(item)} disabled={loadingAction === item.id} sx={{ minWidth: 48, minHeight: 48 }}>
+          {item.active ? <DeleteIcon /> : <EditIcon />}
+        </IconButton>
+        <IconButton size="small" onClick={() => setDeleteConfirm({ id: item.id, name: item.name })} sx={{ minWidth: 48, minHeight: 48, color: 'error.main' }}>
+          <DeleteIcon />
+        </IconButton>
       </Box>
     </Box>
   );
@@ -90,7 +121,7 @@ function ItemsPage() {
 
       <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
         <CardContent sx={{ p: { xs: 2, md: 2 } }}>
-          <TableCards data={items} pagination={pagination} onPageChange={handlePageChange} onRowsPerPageChange={handleRowsPerPageChange} loading={loading} renderItem={renderItemCard} keyField="id">
+          <TableCards data={items} pagination={pagination} onPageChange={handlePageChange} onRowsPerPageChange={handleRowsPerPageChange} loading={loading} renderItem={renderItemCard} keyField="id" onActivate={handleToggleActive} onDelete={(item) => setDeleteConfirm({ id: item.id, name: item.name })}>
             <TableHead>
               <TableRow sx={{ bgcolor: '#f1f5f9' }}>
                 <TableCell sx={{ fontWeight: 600, width: 50 }}>ID</TableCell>
@@ -128,6 +159,21 @@ function ItemsPage() {
       </Dialog>
 
       <Fab color="primary" sx={{ position: 'fixed', right: 24, bottom: 24, display: { xs: 'flex', sm: 'none' } }} onClick={() => setShowModal(true)}><AddIcon /></Fab>
+
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>¿Eliminar ítem?</DialogTitle>
+        <DialogContentMui>
+          <Typography variant="body2" color="text.secondary">
+            ¿Estás seguro de eliminar "{deleteConfirm?.name}"? Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContentMui>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+          <Button color="error" variant="contained" onClick={handleDelete} disabled={loadingAction === 'deleting'}>
+            {loadingAction === 'deleting' ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

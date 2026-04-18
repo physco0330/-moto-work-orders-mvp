@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
   Box, Card, CardContent, Typography, Table, TableBody, TableCell,
-  TableHead, TableRow, Chip, IconButton, Tooltip
+  TableHead, TableRow, Chip, IconButton, Tooltip, Dialog, DialogTitle,
+  DialogContent, DialogActions, Button
 } from '@mui/material';
 import TableCards from '../components/TableCards';
 import EmailIcon from '@mui/icons-material/Email';
@@ -43,6 +44,8 @@ function OrdersByStatusPage() {
   const [pagination, setPagination] = useState(null);
   const { success, error: showError } = useToast();
   const navigate = useNavigate();
+  const [emailConfirm, setEmailConfirm] = useState(null);
+  const [pdfConfirm, setPdfConfirm] = useState(null);
   const showActions = status === 'terminados';
 
   useEffect(() => { loadOrders(); }, [status, page, pageSize]);
@@ -69,8 +72,12 @@ function OrdersByStatusPage() {
   const handlePageChange = (newPage) => setPage(newPage);
   const handleRowsPerPageChange = (newPageSize) => { setPageSize(newPageSize); setPage(1); };
 
-  const handleEmail = (order) => {
-    success(`Enviando correo a ${order.bike?.client?.email || 'cliente'}`);
+  const handleEmailClick = (order) => {
+    setEmailConfirm(order);
+  };
+
+  const handlePDFClick = (order) => {
+    setPdfConfirm(order);
   };
 
   const handlePDF = async (order) => {
@@ -101,8 +108,8 @@ function OrdersByStatusPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}><Typography variant="caption" color="text.secondary">Total</Typography><Typography variant="body2" sx={{ fontWeight: 600 }}>${Number(order.total || 0).toFixed(2)}</Typography></Box>
       {showActions && (
         <Box sx={{ display: 'flex', gap: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'center' }}>
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleEmail(order); }} sx={{ minWidth: 48, minHeight: 48 }}><EmailIcon /></IconButton>
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handlePDF(order); }} sx={{ minWidth: 48, minHeight: 48 }}><PictureAsPdfIcon /></IconButton>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleEmailClick(order); }} sx={{ minWidth: 48, minHeight: 48 }}><EmailIcon /></IconButton>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handlePDFClick(order); }} sx={{ minWidth: 48, minHeight: 48 }}><PictureAsPdfIcon /></IconButton>
           <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleViewOrder(order); }} sx={{ minWidth: 48, minHeight: 48 }}>👉</IconButton>
         </Box>
       )}
@@ -136,8 +143,8 @@ function OrdersByStatusPage() {
                   <TableCell align="right">${Number(order.total || 0).toFixed(2)}</TableCell>
                   {showActions && (
                     <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                      <Tooltip title="Email"><IconButton size="small" onClick={() => handleEmail(order)}><EmailIcon /></IconButton></Tooltip>
-                      <Tooltip title="PDF"><IconButton size="small" onClick={() => handlePDF(order)}><PictureAsPdfIcon /></IconButton></Tooltip>
+                      <Tooltip title="Email"><IconButton size="small" onClick={() => handleEmailClick(order)}><EmailIcon /></IconButton></Tooltip>
+                      <Tooltip title="PDF"><IconButton size="small" onClick={() => handlePDFClick(order)}><PictureAsPdfIcon /></IconButton></Tooltip>
                     </TableCell>
                   )}
                 </TableRow>
@@ -146,6 +153,32 @@ function OrdersByStatusPage() {
           </TableCards>
         </CardContent>
       </Card>
+
+      <Dialog open={!!emailConfirm} onClose={() => setEmailConfirm(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>Confirmar envío de email</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            ¿Enviar notificación por email a {emailConfirm?.bike?.client?.name} ({emailConfirm?.bike?.client?.email})?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEmailConfirm(null)}>Cancelar</Button>
+          <Button variant="contained" onClick={() => { success('Email enviado'); setEmailConfirm(null); }}>Enviar</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!pdfConfirm} onClose={() => setPdfConfirm(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>Descargar PDF</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            ¿Descargar PDF de la orden #{pdfConfirm?.id}?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPdfConfirm(null)}>Cancelar</Button>
+          <Button variant="contained" onClick={() => { handlePDF(pdfConfirm); setPdfConfirm(null); }}>Descargar</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
