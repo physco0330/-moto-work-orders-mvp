@@ -59,12 +59,23 @@ const start = async () => {
         const columns = columnsResult.map(c => c.column_name);
         
         if (!columns.includes('service_type')) {
-          console.log('Adding new columns to work_orders...');
+          console.log('Adding service_type column...');
           await sequelize.query(`ALTER TABLE work_orders ADD COLUMN service_type VARCHAR(100);`);
+        }
+        if (!columns.includes('pilot_name')) {
+          console.log('Adding pilot_name column...');
           await sequelize.query(`ALTER TABLE work_orders ADD COLUMN pilot_name VARCHAR(100);`);
+        }
+        if (!columns.includes('hours_registered')) {
+          console.log('Adding hours_registered column...');
           await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_registered DECIMAL(10,2) DEFAULT 0;`);
+        }
+        if (!columns.includes('hours_used')) {
+          console.log('Adding hours_used column...');
           await sequelize.query(`ALTER TABLE work_orders ADD COLUMN hours_used DECIMAL(10,2) DEFAULT 0;`);
-          console.log('New columns added to work_orders');
+        }
+        if (columns.includes('service_type') || columns.includes('pilot_name')) {
+          console.log('Work orders columns already exist');
         }
 
         const bikeColumnsResult = await sequelize.query(`

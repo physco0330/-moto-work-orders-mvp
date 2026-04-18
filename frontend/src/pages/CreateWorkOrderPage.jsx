@@ -176,9 +176,9 @@ function CreateWorkOrderPage() {
             <input 
               type="number" 
               value={hoursRegistered} 
-              onChange={(e) => setHoursRegistered(e.target.value)} 
               placeholder="Horas"
-              disabled={loading} 
+              disabled 
+              style={{ backgroundColor: '#f5f5f5' }}
             />
           </label>
           
