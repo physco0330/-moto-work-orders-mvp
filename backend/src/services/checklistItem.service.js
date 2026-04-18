@@ -1,9 +1,21 @@
 const { ChecklistItem } = require('../models');
 
-const getAll = async () => {
-  return await ChecklistItem.findAll({
+const getAll = async (page = 1, pageSize = 10) => {
+  const offset = (Number(page) - 1) * Number(pageSize);
+  const { rows, count } = await ChecklistItem.findAndCountAll({
     order: [['id', 'ASC']],
+    offset,
+    limit: Number(pageSize),
   });
+  return {
+    data: rows,
+    pagination: {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      total: count,
+      totalPages: Math.ceil(count / Number(pageSize)),
+    },
+  };
 };
 
 const create = async (data) => {

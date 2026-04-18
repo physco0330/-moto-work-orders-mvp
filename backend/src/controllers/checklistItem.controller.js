@@ -2,8 +2,10 @@ const checklistItemService = require('../services/checklistItem.service');
 const asyncHandler = require('../utils/asyncHandler');
 
 const getAllItems = asyncHandler(async (req, res) => {
-  const items = await checklistItemService.getAll();
-  res.json({ success: true, data: items });
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const result = await checklistItemService.getAll(page, pageSize);
+  res.json(result);
 });
 
 const createItem = asyncHandler(async (req, res) => {

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
-  Box, Grid, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Chip, IconButton, Tooltip
+  Box, Card, CardContent, Typography, Table, TableBody, TableCell,
+  TableHead, TableRow, Chip, IconButton, Tooltip
 } from '@mui/material';
+import TableCards from '../components/TableCards';
 import EmailIcon from '@mui/icons-material/Email';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useToast } from '../components/Toast';
@@ -37,31 +38,36 @@ function OrdersByStatusPage() {
   const status = window.location.pathname.split('/').pop();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { success } = useToast();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [pagination, setPagination] = useState(null);
+  const { success, error: showError } = useToast();
   const navigate = useNavigate();
   const showActions = status === 'terminados' || status === 'historial';
 
-  useEffect(() => {
-    loadOrders();
-  }, [status]);
+  useEffect(() => { loadOrders(); }, [status, page, pageSize]);
 
   const loadOrders = async () => {
     setLoading(true);
     try {
-      let param = { pageSize: 100 };
+      let param = { page, pageSize };
       if (status === 'historial') {
-        param = { statusIn: 'LISTA,ENTREGADA', pageSize: 100 };
+        param = { statusIn: 'LISTA,ENTREGADA' };
       } else if (STATUS_MAP[status]) {
-        param = { status: STATUS_MAP[status], pageSize: 100 };
+        param.status = STATUS_MAP[status];
       }
       const { data } = await api.get('/work-orders', { params: param });
-      setOrders(data?.data || data || []);
+      setOrders(data.data || data.data?.data || []);
+      setPagination(data.pagination || null);
     } catch (e) {
       console.error('Error:', e);
     } finally {
       setLoading(false);
     }
   };
+
+  const handlePageChange = (newPage) => setPage(newPage);
+  const handleRowsPerPageChange = (newPageSize) => { setPageSize(newPageSize); setPage(1); };
 
   const handleEmail = (order) => {
     success(`Enviando correo a ${order.bike?.client?.email || 'cliente'}`);
@@ -82,75 +88,52 @@ function OrdersByStatusPage() {
     }
   };
 
-  return (
-    <Box sx={{ flexGrow: 1, p: 3, bgcolor: '#fafafa', minHeight: '100vh' }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
-        {TITLE_MAP[status] || 'Órdenes'}
-      </Typography>
+  const renderOrderCard = (order) => (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Placa</Typography><Chip label={order.bike?.plate || '-'} size="small" variant="outlined" /></Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Estado</Typography><Chip label={order.status} color={STATUS_COLORS[order.status]} size="small" /></Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Fecha</Typography><Typography variant="body2">{order.entryDate}</Typography></Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography variant="caption" color="text.secondary">Total</Typography><Typography variant="body2">${Number(order.total || 0).toFixed(2)}</Typography></Box>
+    </Box>
+  );
 
-      {loading ? (
-        <Card sx={{ p: 4, textAlign: 'center' }}>
-          <Typography>Cargando...</Typography>
-        </Card>
-      ) : (
-        <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ bgcolor: '#f9fafb' }}>
-                  <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Placa</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="right">Total</TableCell>
-                  {showActions && <TableCell sx={{ fontWeight: 600 }} align="center">Acciones</TableCell>}
+  return (
+    <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>{TITLE_MAP[status] || 'Órdenes'}</Typography>
+
+      <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+        <CardContent sx={{ p: { xs: 2, md: 2 } }}>
+          <TableCards data={orders} pagination={pagination} onPageChange={handlePageChange} onRowsPerPageChange={handleRowsPerPageChange} loading={loading} renderItem={renderOrderCard} keyField="id">
+            <TableHead>
+              <TableRow sx={{ bgcolor: '#f1f5f9' }}>
+                <TableCell sx={{ fontWeight: 600, width: 50 }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Placa</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Estado</TableCell>
+                <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Fecha</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 70 }} align="right">Total</TableCell>
+                {showActions && <TableCell sx={{ fontWeight: 600, width: 70 }} align="center">Acciones</TableCell>}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order.id} hover sx={{ cursor: 'pointer', '&:last-child td': { borderBottom: 0 } }} onClick={() => navigate(`/work-orders/${order.id}`)}>
+                  <TableCell>#{order.id}</TableCell>
+                  <TableCell><Chip label={order.bike?.plate || '-'} size="small" variant="outlined" sx={{ fontWeight: 600, fontSize: '0.7rem' }} /></TableCell>
+                  <TableCell><Chip label={order.status} color={STATUS_COLORS[order.status]} size="small" sx={{ fontWeight: 500, fontSize: '0.7rem' }} /></TableCell>
+                  <TableCell>{order.entryDate}</TableCell>
+                  <TableCell align="right">${Number(order.total || 0).toFixed(2)}</TableCell>
+                  {showActions && (
+                    <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                      <Tooltip title="Email"><IconButton size="small" onClick={() => handleEmail(order)}><EmailIcon /></IconButton></Tooltip>
+                      <Tooltip title="PDF"><IconButton size="small" onClick={() => handlePDF(order)}><PictureAsPdfIcon /></IconButton></Tooltip>
+                    </TableCell>
+                  )}
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow 
-                    key={order.id} 
-                    hover 
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => navigate(`/work-orders/${order.id}`)}
-                  >
-                    <TableCell>#{order.id}</TableCell>
-                    <TableCell>
-                      <Chip label={order.bike?.plate || '-'} size="small" variant="outlined" />
-                    </TableCell>
-                    <TableCell>
-                      <Chip label={order.status} color={STATUS_COLORS[order.status]} size="small" />
-                    </TableCell>
-                    <TableCell>{order.entryDate}</TableCell>
-                    <TableCell align="right">${Number(order.total || 0).toFixed(2)}</TableCell>
-                    {showActions && (
-                      <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                        <Tooltip title="Email">
-                          <IconButton size="small" onClick={() => handleEmail(order)}>
-                            <EmailIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="PDF">
-                          <IconButton size="small" onClick={() => handlePDF(order)}>
-                            <PictureAsPdfIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-                {orders.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={showActions ? 6 : 5} align="center" sx={{ py: 4 }}>
-                      No hay órdenes
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Card>
-      )}
+              ))}
+            </TableBody>
+          </TableCards>
+        </CardContent>
+      </Card>
     </Box>
   );
 }
