@@ -81,6 +81,19 @@ const start = async () => {
           console.log('New columns added to bikes');
         }
 
+        const clientColumnsResult = await sequelize.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name = 'clients' AND table_schema = 'public';
+        `, { type: sequelize.QueryTypes.SELECT });
+
+        const clientColumns = clientColumnsResult.map(c => c.column_name);
+        
+        if (!clientColumns.includes('active')) {
+          console.log('Adding active column to clients...');
+          await sequelize.query(`ALTER TABLE clients ADD COLUMN active BOOLEAN DEFAULT true;`);
+          console.log('Active column added to clients');
+        }
+
         const checklistTable = await sequelize.query(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
