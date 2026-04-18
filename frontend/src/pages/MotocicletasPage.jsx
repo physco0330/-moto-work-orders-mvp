@@ -5,7 +5,7 @@ import {
   Box, Card, CardContent, Typography, Button, TextField, Dialog, DialogTitle,
   DialogContent, DialogActions, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, IconButton, Chip, Fab, Grid, FormControl, InputLabel, 
-  Select, MenuItem, TableSortLabel
+  Select, MenuItem
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -51,26 +51,9 @@ function MotocicletasPage() {
   const handlePageChange = (newPage) => setPage(newPage);
   const handleRowsPerPageChange = (newPageSize) => { setPageSize(newPageSize); setPage(1); };
 
-  const handleSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
   const filteredMotos = filterPilot 
     ? motos.filter(m => m.clientId === parseInt(filterPilot))
     : motos;
-
-  const sortedMotos = [...filteredMotos].sort((a, b) => {
-    let aVal = a[orderBy] ?? '';
-    let bVal = b[orderBy] ?? '';
-    if (typeof aVal === 'number') {
-      return order === 'asc' ? aVal - bVal : bVal - aVal;
-    }
-    return order === 'asc' 
-      ? String(aVal).localeCompare(String(bVal))
-      : String(bVal).localeCompare(String(aVal));
-  });
 
   const openNew = () => {
     setEditando(null);
@@ -183,22 +166,10 @@ function MotocicletasPage() {
             <Table size="small" sx={{ minWidth: { xs: 600, sm: 'auto' } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: '#f1f5f9' }}>
-                  <TableCell sx={{ fontWeight: 600, width: 50 }}>
-                    <TableSortLabel active={orderBy === 'id'} direction={orderBy === 'id' ? order : 'asc'} onClick={() => handleSort('id')}>
-                      ID
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>
-                    <TableSortLabel active={orderBy === 'plate'} direction={orderBy === 'plate' ? order : 'asc'} onClick={() => handleSort('plate')}>
-                      Placa
-                    </TableSortLabel>
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, width: 50 }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Placa</TableCell>
                   <TableCell sx={{ fontWeight: 600, minWidth: 70 }}>Marca</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>
-                    <TableSortLabel active={orderBy === 'model'} direction={orderBy === 'model' ? order : 'asc'} onClick={() => handleSort('model')}>
-                      Modelo
-                    </TableSortLabel>
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Modelo</TableCell>
                   <TableCell sx={{ fontWeight: 600, width: 50 }}>Año</TableCell>
                   <TableCell sx={{ fontWeight: 600, width: 50 }}>Horas</TableCell>
                   <TableCell sx={{ fontWeight: 600, minWidth: 90 }}>Piloto</TableCell>
@@ -206,7 +177,7 @@ function MotocicletasPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedMotos.map((m) => (
+                {filteredMotos.map((m) => (
                   <TableRow key={m.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
                     <TableCell>#{m.id}</TableCell>
                     <TableCell>
@@ -229,7 +200,7 @@ function MotocicletasPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!sortedMotos.length && (
+                {!filteredMotos.length && (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       No hay motocicletas
@@ -239,6 +210,18 @@ function MotocicletasPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          {pagination && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Mostrando {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} de {pagination.total}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Button size="small" variant="outlined" disabled={pagination.page <= 1} onClick={() => setPage(p => p - 1)}>Anterior</Button>
+                <Typography variant="body2">Página {pagination.page} de {pagination.totalPages}</Typography>
+                <Button size="small" variant="outlined" disabled={pagination.page >= pagination.totalPages} onClick={() => setPage(p => p + 1)}>Siguiente</Button>
+              </Box>
+            </Box>
+          )}
         </CardContent>
       </Card>
 
