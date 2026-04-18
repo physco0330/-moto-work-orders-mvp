@@ -248,13 +248,13 @@ function CreateWorkOrderPage() {
           <label>Piloto *
             <select value={selectedPilotId} onChange={handlePilotChange} required disabled={loading}>
               <option value="">Seleccionar piloto...</option>
-              {pilotos.map(p => (
+              {pilotos.filter(p => p.active !== false).map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </label>
-          <label>Horas de Uso
-            <input type="number" value={hoursRegistered} onChange={(e) => setHoursRegistered(e.target.value)} placeholder="Horas" disabled={loading} />
+          <label>Horas de la moto
+            <input type="number" value={hoursRegistered} onChange={(e) => setHoursRegistered(e.target.value)} placeholder="Horas" disabled={loading || !!bike} style={{ backgroundColor: bike ? '#f5f5f5' : 'white' }} />
           </label>
         </div>
       </div>
@@ -265,7 +265,7 @@ function CreateWorkOrderPage() {
           <select value={serviceType} onChange={(e) => setServiceType(e.target.value)} style={{ width: '100%' }} disabled={loading}>
             <option value="">Seleccionar tipo...</option>
             <option value="ALISTAMIENTO">Alistamiento</option>
-            <option value="REPARACION">Reparacion</option>
+            <option value="REPARACION">Reparación</option>
             <option value="MANTENIMIENTO">Mantenimiento</option>
             <option value="OTRO">Otro</option>
           </select>
