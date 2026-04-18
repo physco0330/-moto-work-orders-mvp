@@ -116,8 +116,7 @@ function Layout() {
           </ListItemIcon>
           <ListItemText primary="Cerrar sesión" />
         </ListItemButton>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2, gap: 1 }}>
-          <img src="/logo-pavas.jpeg" alt="Pavas" style={{ width: 60, borderRadius: 8, objectFit: 'contain' }} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
           <Typography variant="caption" sx={{ fontWeight: 600, color: '#1565c0', fontSize: '0.75rem' }}>
             SKALERA MOTORS
           </Typography>
