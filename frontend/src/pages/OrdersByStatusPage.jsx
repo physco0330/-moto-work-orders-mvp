@@ -88,12 +88,24 @@ function OrdersByStatusPage() {
     }
   };
 
+  const handleViewOrder = (order) => {
+    navigate(`/work-orders/${order.id}`);
+  };
+
   const renderOrderCard = (order) => (
-    <Box>
+    <Box onClick={() => handleViewOrder(order)} sx={{ cursor: 'pointer' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Orden</Typography><Typography variant="body2" sx={{ fontWeight: 700 }}>#{order.id}</Typography></Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Placa</Typography><Chip label={order.bike?.plate || '-'} size="small" variant="outlined" /></Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Estado</Typography><Chip label={order.status} color={STATUS_COLORS[order.status]} size="small" /></Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography variant="caption" color="text.secondary">Fecha</Typography><Typography variant="body2">{order.entryDate}</Typography></Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography variant="caption" color="text.secondary">Total</Typography><Typography variant="body2">${Number(order.total || 0).toFixed(2)}</Typography></Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}><Typography variant="caption" color="text.secondary">Total</Typography><Typography variant="body2" sx={{ fontWeight: 600 }}>${Number(order.total || 0).toFixed(2)}</Typography></Box>
+      {showActions && (
+        <Box sx={{ display: 'flex', gap: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'center' }}>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleEmail(order); }} sx={{ minWidth: 48, minHeight: 48 }}><EmailIcon /></IconButton>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handlePDF(order); }} sx={{ minWidth: 48, minHeight: 48 }}><PictureAsPdfIcon /></IconButton>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleViewOrder(order); }} sx={{ minWidth: 48, minHeight: 48 }}>👉</IconButton>
+        </Box>
+      )}
     </Box>
   );
 
