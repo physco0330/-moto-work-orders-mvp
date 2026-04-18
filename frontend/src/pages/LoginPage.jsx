@@ -16,7 +16,7 @@ function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/work-orders', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (e) {
       showError(e.response?.data?.message || 'No se pudo iniciar sesión');
     } finally {
@@ -25,66 +25,45 @@ function LoginPage() {
   };
 
   return (
-    <div className="auth-screen">
-      <div className="auth-layout">
-        <aside className="auth-visual">
-          <div>
-            <div className="auth-kicker">Taller de motos | control operacional</div>
-            <h1 className="auth-title">Gestiona ordenes con una experiencia mas limpia y profesional.</h1>
-            <p className="auth-copy">
-              Centraliza recepcion, diagnostico, avance, entrega e historial de cada moto con control por roles.
-            </p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: 20 }}>
+      <div style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Taller MX</h1>
+          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>Ingresa tus credenciales</p>
+        </div>
+        
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#334155', marginBottom: 6 }}>Email</label>
+              <input 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                type="email" 
+                required 
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 14, outline: 'none' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#334155', marginBottom: 6 }}>Contraseña</label>
+              <input 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                type="password" 
+                required 
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 14, outline: 'none' }}
+              />
+            </div>
           </div>
 
-          <div className="auth-points">
-            <div className="feature">
-              <strong>Ordenes vivas</strong>
-              <span>Seguimiento claro del estado y del total en todo momento.</span>
-            </div>
-            <div className="feature">
-              <strong>Acceso seguro</strong>
-              <span>Sesiones con JWT y permisos por rol para ADMIN y MECANICO.</span>
-            </div>
-            <div className="feature">
-              <strong>Historial</strong>
-              <span>Auditoria de cambios con usuario, fecha y nota.</span>
-            </div>
-            <div className="feature">
-              <strong>Operacion rapida</strong>
-              <span>Flujo pensado para el taller y para capturar informacion sin friccion.</span>
-            </div>
-          </div>
-        </aside>
-
-        <section className="auth-panel">
-          <form className="card auth-card" onSubmit={handleSubmit}>
-            <div className="brand" style={{ marginBottom: 18 }}>
-              <div className="brand-mark">P</div>
-              <div>
-                <div className="brand-title">Bienvenido</div>
-                <div className="brand-subtitle">Inicia sesion para continuar</div>
-              </div>
-            </div>
-
-            <h2 className="auth-title" style={{ fontSize: 'clamp(28px, 3vw, 38px)', marginTop: 0 }}>Ingresar</h2>
-            <p className="auth-copy" style={{ marginBottom: 22 }}>Acceso al sistema de ordenes del taller.</p>
-
-            <div className="form-stack">
-              <label>
-                Email
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-              </label>
-              <label>
-                Contraseña
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-              </label>
-            </div>
-
-            <button style={{ width: '100%', marginTop: 16 }} disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
-            </button>
-          </form>
-        </section>
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{ width: '100%', marginTop: 24, padding: '14px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+          >
+            {loading ? 'Entrando...' : 'Iniciar Sesión'}
+          </button>
+        </form>
       </div>
     </div>
   );
