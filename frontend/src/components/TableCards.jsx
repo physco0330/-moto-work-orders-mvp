@@ -35,27 +35,45 @@ const TableCards = ({
     if (onRowsPerPageChange) onRowsPerPageChange(event.target.value);
   };
 
+  const ButtonLarge = ({ onClick, children, color, disabled }) => (
+    <IconButton 
+      onClick={onClick} 
+      disabled={disabled}
+      sx={{ 
+        minWidth: 52, 
+        minHeight: 52, 
+        bgcolor: disabled ? 'action.disabledBackground' : (color ? `${color}.lighter` : 'action.hover'),
+        color: disabled ? 'action.disabled' : (color ? `${color}.main` : 'text.primary'),
+        '&:hover': { bgcolor: disabled ? 'action.disabledBackground' : (color ? `${color}.light` : 'action.selected') },
+        borderRadius: 2,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}
+    >
+      {children}
+    </IconButton>
+  );
+
   if (isMobile) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {data.map((item) => (
-          <Card key={item[keyField]} sx={{ borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Card key={item[keyField]} sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'visible' }}>
+            <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
               {renderItem ? renderItem(item) : (
                 columns.map((col, i) => (
-                  <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, py: 0.5 }}>
-                    <Typography variant="caption" color="text.secondary">{col.label}</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5, py: 0.5, alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: '0.75rem' }}>{col.label}</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
                       {col.render ? col.render(item[col.field], item) : item[col.field]}
                     </Typography>
                   </Box>
                 ))
               )}
               {(onEdit || onDelete || onActivate) && (
-                <Box sx={{ display: 'flex', gap: 0.5, mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'center' }}>
-                  {onEdit && <IconButton size="small" onClick={() => onEdit(item)}><EditIcon /></IconButton>}
-                  {onDelete && <IconButton size="small" onClick={() => onDelete(item)}><DeleteIcon /></IconButton>}
-                  {onActivate && <IconButton size="small" onClick={() => onActivate(item)}><CheckCircleIcon /></IconButton>}
+                <Box sx={{ display: 'flex', gap: 1, mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'center' }}>
+                  {onEdit && <ButtonLarge onClick={() => onEdit(item)} color="primary"><EditIcon /></ButtonLarge>}
+                  {onDelete && <ButtonLarge onClick={() => onDelete(item)} color="error"><DeleteIcon /></ButtonLarge>}
+                  {onActivate && <ButtonLarge onClick={() => onActivate(item)} color="success"><CheckCircleIcon /></ButtonLarge>}
                 </Box>
               )}
             </CardContent>
@@ -65,16 +83,11 @@ const TableCards = ({
           <Typography align="center" color="text.secondary" sx={{ py: 4 }}>No hay datos</Typography>
         )}
         {pagination && (
-          <TablePagination
-            component="div"
-            count={total}
-            page={page - 1}
-            onPageChange={handleChangePage}
-            rowsPerPage={pageSize}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
-            labelRowsPerPage="Filas por página:"
-          />
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+            <ButtonLarge onClick={() => page > 1 && onPageChange(page - 1)} disabled={page <= 1}><ArrowBackIcon /></ButtonLarge>
+            <Typography sx={{ alignSelf: 'center', px: 2 }}>{page} / {totalPages}</Typography>
+            <ButtonLarge onClick={() => page < totalPages && onPageChange(page + 1)} disabled={page >= totalPages}><ArrowForwardIcon /></ButtonLarge>
+          </Box>
         )}
       </Box>
     );
