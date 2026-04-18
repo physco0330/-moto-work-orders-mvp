@@ -212,7 +212,9 @@ function WorkOrderDetailPage() {
             <span className="chip">{order.bike?.plate}</span>
             <span className="badge">{order.bike?.client?.name}</span>
             <StatusBadge status={order.status} />
-            <button className="button" onClick={handlePDF} style={{ marginLeft: 8 }}>PDF</button>
+            {(order.status === 'LISTA' || order.status === 'ENTREGADA') && (
+              <button className="button" onClick={handlePDF} style={{ marginLeft: 8 }}>PDF</button>
+            )}
           </div>
         </div>
         <div className="summary-card" style={{ minWidth: 180 }}>
@@ -373,38 +375,6 @@ function WorkOrderDetailPage() {
 
       {activeTab === 'items' && (
         <div className="detail-grid">
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <h3 className="card-title">Checklist del Sistema</h3>
-              </div>
-            </div>
-            <div className="checklist-grid">
-              {systemItems.map((item) => {
-                const checkedItem = checklistItems.find(c => c.checklistItemId === item.id);
-                return (
-                  <label key={item.id} className="checklist-item">
-                    <input
-                      type="checkbox"
-                      checked={checkedItem?.checked || false}
-                      onChange={(e) => canEditChecklist && toggleChecklistItem(item.id, e.target.checked)}
-                      disabled={!canEditChecklist}
-                    />
-                    <span>{item.name}</span>
-                  </label>
-                );
-              })}
-              {!systemItems.length && (
-                <p className="muted">No hay items de checklist configurados</p>
-              )}
-            </div>
-            {!canEditChecklist && (
-              <p className="muted" style={{ marginTop: 8, fontSize: '0.85rem' }}>
-                El checklist no puede modificarse en órdenes terminadas o canceladas
-              </p>
-            )}
-          </div>
-
           <div className="card">
             <div className="card-header">
               <div>

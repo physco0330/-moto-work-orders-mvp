@@ -39,7 +39,7 @@ function OrdersByStatusPage() {
   const [loading, setLoading] = useState(true);
   const { success } = useToast();
   const navigate = useNavigate();
-  const showActions = status === 'terminados';
+  const showActions = status === 'terminados' || status === 'historial';
 
   useEffect(() => {
     loadOrders();
