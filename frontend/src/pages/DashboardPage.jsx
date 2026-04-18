@@ -3,120 +3,108 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
   Box, Grid, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, TableSortLabel, Chip, TablePagination, Fab
+  TableHead, TableRow, Paper, Fab, Chip
 } from '@mui/material';
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import PeopleIcon from '@mui/icons-material/People';
 import BuildIcon from '@mui/icons-material/Build';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PeopleIcon from '@mui/icons-material/People';
+import PendingIcon from '@mui/icons-material/Pending';
 import AddIcon from '@mui/icons-material/Add';
-
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-}
-
-const STATUS_COLORS = {
-  RECIBIDA: 'warning',
-  DIAGNOSTICO: 'info',
-  EN_PROCESO: 'primary',
-  LISTA: 'success',
-  ENTREGADA: 'default',
-  CANCELADA: 'error',
-};
 
 function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, activeClients: 0 });
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadDashboardData();
+    loadData();
   }, []);
 
-  const loadDashboardData = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const [statsRes, ordersRes] = await Promise.all([
-        api.get('/work-orders', { params: { pageSize: 100 } }),
-        api.get('/clients', { params: { search: '' } })
+      const [ordersRes, clientsRes] = await Promise.all([
+        api.get('/work-orders', { params: { pageSize: 50 } }),
+        api.get('/clients')
       ]);
       
-      const orders = ordersRes.data?.data || ordersRes.data || [];
-      const workOrders = statsRes.data?.data || statsRes.data || [];
+      const allOrders = ordersRes.data?.data || ordersRes.data || [];
+      const allClients = clientsRes.data?.data || clientsRes.data || [];
       
+      setOrders(allOrders);
       setStats({
-        pending: workOrders.filter(o => o.status === 'RECIBIDA').length,
-        inProgress: workOrders.filter(o => o.status === 'EN_PROCESO').length,
-        completed: workOrders.filter(o => o.status === 'LISTA' || o.status === 'ENTREGADA').length,
-        activeClients: orders.length
+        pending: allOrders.filter(o => o.status === 'RECIBIDA').length,
+        inProgress: allOrders.filter(o => o.status === 'EN_PROCESO').length,
+        completed: allOrders.filter(o => o.status === 'LISTA' || o.status === 'ENTREGADA').length,
+        activeClients: allClients.length
       });
-      
-      setRecentOrders(Array.isArray(workOrders) ? workOrders.slice(0, 50) : []);
     } catch (e) {
-      console.error('Error loading dashboard:', e);
+      console.error('Error:', e);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSort = (sortKey) => {
-    if (sortConfig.key === sortKey) {
-      setSortConfig(sortConfig.direction === 'asc' ? { key: sortKey, direction: 'desc' } : { key: null, direction: null });
-    } else {
-      setSortConfig({ key: sortKey, direction: 'asc' });
-    }
+  const getStatusColor = (status) => {
+    const colors = {
+      RECIBIDA: 'warning',
+      DIAGNOSTICO: 'info',
+      EN_PROCESO: 'primary',
+      LISTA: 'success',
+      ENTREGADA: 'default',
+      CANCELADA: 'error'
+    };
+    return colors[status] || 'default';
   };
 
-  const sortedOrders = [...recentOrders].sort((a, b) => {
-    if (!sortConfig.key || !sortConfig.direction) return b.id - a.id;
-    const aVal = getNestedValue(a, sortConfig.key) || '';
-    const bVal = getNestedValue(b, sortConfig.key) || '';
-    return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-  });
-
   const statCards = [
-    { title: 'Servicios Pendientes', value: stats.pending, icon: <PendingActionsIcon />, color: '#f59e0b', link: '/work-orders/pendientes' },
-    { title: 'Servicios en Proceso', value: stats.inProgress, icon: <BuildIcon />, color: '#3b82f6', link: '/work-orders/proceso' },
-    { title: 'Servicios Terminados', value: stats.completed, icon: <CheckCircleIcon />, color: '#22c55e', link: '/work-orders/terminados' },
-    { title: 'Pilotos Activos', value: stats.activeClients, icon: <PeopleIcon />, color: '#8b5cf6', link: '/pilotos' },
+    { title: 'Pendientes', value: stats.pending, icon: <PendingIcon />, color: '#f59e0b', bg: '#fef3c7', link: '/work-orders/pendientes' },
+    { title: 'En Proceso', value: stats.inProgress, icon: <BuildIcon />, color: '#3b82f6', bg: '#dbeafe', link: '/work-orders/proceso' },
+    { title: 'Terminados', value: stats.completed, icon: <CheckCircleIcon />, color: '#22c55e', bg: '#dcfce7', link: '/work-orders/terminados' },
+    { title: 'Pilotos', value: stats.activeClients, icon: <PeopleIcon />, color: '#8b5cf6', bg: '#ede9fe', link: '/pilotos' }
   ];
 
   return (
-    <Box sx={{ flexGrow: 1, p: { xs: 1, sm: 2, md: 3 }, bgcolor: '#fafafa', minHeight: '100vh' }}>
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {statCards.map((card, index) => (
-          <Grid item xs={6} md={3} key={index}>
+    <Box sx={{ flexGrow: 1, p: 3, bgcolor: '#fafafa', minHeight: '100vh' }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
+        Dashboard
+      </Typography>
+
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {statCards.map((card, i) => (
+          <Grid item xs={6} md={3} key={i}>
             <Card 
-              component={Link} 
+              component={Link}
               to={card.link}
               sx={{ 
                 textDecoration: 'none',
                 borderRadius: 3,
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
-                borderLeft: `4px solid ${card.color}`
+                borderLeft: `4px solid ${card.color}`,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                transition: 'all 0.2s',
+                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }
               }}
             >
               <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">
                     {card.title}
                   </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 700, mt: 0.5 }}>
                     {card.value}
                   </Typography>
                 </Box>
                 <Box sx={{ 
                   p: 1.5, 
                   borderRadius: 2, 
-                  bgcolor: `${card.color}20`,
-                  color: card.color 
+                  bgcolor: card.bg,
+                  color: card.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}>
-                  {card.icon}
+                  {React.cloneElement(card.icon, { sx: { fontSize: 28 } })}
                 </Box>
               </CardContent>
             </Card>
@@ -124,51 +112,44 @@ function DashboardPage() {
         ))}
       </Grid>
 
-      <Card sx={{ borderRadius: 3, mb: 3 }}>
+      <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Órdenes Recientes
           </Typography>
           <TableContainer>
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <TableSortLabel active={sortConfig.key === 'id'} direction={sortConfig.key === 'id' ? sortConfig.direction : 'asc'} onClick={() => handleSort('id')}>
-                      ID
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>Placa</TableCell>
-                  <TableCell>
-                    <TableSortLabel active={sortConfig.key === 'status'} direction={sortConfig.key === 'status' ? sortConfig.direction : 'asc'} onClick={() => handleSort('status')}>
-                      Estado
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel active={sortConfig.key === 'entryDate'} direction={sortConfig.key === 'entryDate' ? sortConfig.direction : 'asc'} onClick={() => handleSort('entryDate')}>
-                      Fecha
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell align="right">Total</TableCell>
+                <TableRow sx={{ bgcolor: '#f9fafb' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Placa</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="right">Total</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((order) => (
-                  <TableRow hover key={order.id} sx={{ cursor: 'pointer' }} onClick={() => navigate(`/work-orders/${order.id}`)}>
+                {orders.slice(0, 10).map((order) => (
+                  <TableRow 
+                    key={order.id} 
+                    hover 
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => navigate(`/work-orders/${order.id}`)}
+                  >
                     <TableCell>#{order.id}</TableCell>
                     <TableCell>
                       <Chip label={order.bike?.plate || '-'} size="small" variant="outlined" />
                     </TableCell>
                     <TableCell>
-                      <Chip label={order.status} color={STATUS_COLORS[order.status] || 'default'} size="small" />
+                      <Chip label={order.status} color={getStatusColor(order.status)} size="small" />
                     </TableCell>
                     <TableCell>{order.entryDate}</TableCell>
                     <TableCell align="right">${Number(order.total || 0).toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
-                {!sortedOrders.length && (
+                {orders.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       No hay órdenes
                     </TableCell>
                   </TableRow>
@@ -176,14 +157,6 @@ function DashboardPage() {
               </TableBody>
             </Table>
           </TableContainer>
-          <TablePagination
-            count={sortedOrders.length}
-            page={page}
-            onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-            rowsPerPageOptions={[5, 10, 25]}
-          />
         </CardContent>
       </Card>
 
@@ -191,13 +164,7 @@ function DashboardPage() {
         component={Link} 
         to="/work-orders/new"
         color="primary"
-        sx={{ 
-          position: 'fixed', 
-          right: 16, 
-          bottom: 16,
-          borderRadius: 3,
-          boxShadow: 4
-        }}
+        sx={{ position: 'fixed', right: 24, bottom: 24 }}
       >
         <AddIcon />
       </Fab>
