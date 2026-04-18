@@ -17,6 +17,7 @@ function CreateWorkOrderPage() {
   const [allBikes, setAllBikes] = useState([]);
   const [selectedBike, setSelectedBike] = useState(null);
   const [serviceType, setServiceType] = useState('');
+  const [hoursRegistered, setHoursRegistered] = useState(0);
   const [hoursUsed, setHoursUsed] = useState(0);
   const [ownItems, setOwnItems] = useState([]);
   const [newOwnItem, setNewOwnItem] = useState('');
@@ -48,10 +49,12 @@ function CreateWorkOrderPage() {
       const pilotBikes = allBikes.filter(b => b.clientId === selectedPilot.id || b.client?.id === selectedPilot.id);
       if (pilotBikes.length > 0) {
         setSelectedBike(pilotBikes[0]);
-        setHoursUsed(pilotBikes[0].hours || 0);
+        setHoursRegistered(pilotBikes[0].hours || 0);
+        setHoursUsed(0);
         success(`Moto cargada: ${pilotBikes[0].plate} - ${pilotBikes[0].hours || 0} horas`);
       } else {
         setSelectedBike(null);
+        setHoursRegistered(0);
         setHoursUsed(0);
       }
     } else {
@@ -64,10 +67,12 @@ function CreateWorkOrderPage() {
   const handleBikeSelect = (event, selectedBike) => {
     if (selectedBike) {
       setSelectedBike(selectedBike);
-      setHoursUsed(selectedBike.hours || 0);
+      setHoursRegistered(selectedBike.hours || 0);
+      setHoursUsed(0);
       success(`Moto seleccionada: ${selectedBike.plate}`);
     } else {
       setSelectedBike(null);
+      setHoursRegistered(0);
       setHoursUsed(0);
     }
   };
@@ -107,7 +112,9 @@ function CreateWorkOrderPage() {
       const payload = { 
         motoId: selectedBike.id, 
         pilotName: selectedPilot.name,
+        faultDescription: '-',
         serviceType: serviceType || null,
+        hoursRegistered: Number(hoursRegistered) || 0,
         hoursUsed: Number(hoursUsed) || 0,
         ownItems,
       };
@@ -163,6 +170,17 @@ function CreateWorkOrderPage() {
               {selectedBike.plate} - {selectedBike.brand} {selectedBike.model} - {selectedBike.hours || 0} horas
             </div>
           )}
+          
+          <label>
+            Horas registradas
+            <input 
+              type="number" 
+              value={hoursRegistered} 
+              onChange={(e) => setHoursRegistered(e.target.value)} 
+              placeholder="Horas"
+              disabled={loading} 
+            />
+          </label>
           
           <label>
             Horas de Uso *
