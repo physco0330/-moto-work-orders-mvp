@@ -30,6 +30,7 @@ function WorkOrderDetailPage() {
   const [newOwnItem, setNewOwnItem] = useState('');
   const [loadingAction, setLoadingAction] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [pdfConfirm, setPdfConfirm] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -194,8 +195,13 @@ function WorkOrderDetailPage() {
   const canEditChecklist = order.status !== 'LISTA' && order.status !== 'ENTREGADA' && order.status !== 'CANCELADA';
 
   const handlePDF = () => {
+    setPdfConfirm(true);
+  };
+
+  const handlePDFConfirm = () => {
+    setPdfConfirm(false);
     downloadWorkOrderPDF(order, checklistItems, systemItems);
-    success('PDF generado correctamente');
+    success('PDF descargado correctamente');
   };
 
   return (
@@ -213,7 +219,7 @@ function WorkOrderDetailPage() {
             <span className="badge">{order.bike?.client?.name}</span>
             <StatusBadge status={order.status} />
             {(order.status === 'LISTA' || order.status === 'ENTREGADA') && (
-              <button className="button" onClick={handlePDF} style={{ marginLeft: 8 }}>PDF</button>
+              <button className="button" onClick={() => setPdfConfirm(true)} style={{ marginLeft: 8 }}>PDF</button>
             )}
           </div>
         </div>
@@ -547,6 +553,16 @@ function WorkOrderDetailPage() {
         title={`¿Eliminar ${deleteConfirm?.type === 'item' ? 'item' : 'registro'}?`}
         message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
         confirmText="Eliminar"
+      />
+
+      <ConfirmDialog
+        isOpen={pdfConfirm}
+        onConfirm={handlePDFConfirm}
+        onCancel={() => setPdfConfirm(false)}
+        title="Descargar PDF"
+        message={`¿Deseas descargar el PDF de la orden #${order?.id}?`}
+        confirmText="Descargar"
+        type="info"
       />
     </div>
   );
