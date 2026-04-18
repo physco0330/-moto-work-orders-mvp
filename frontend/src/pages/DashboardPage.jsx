@@ -10,11 +10,8 @@ import BuildIcon from '@mui/icons-material/Build';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/PendingActions';
 import AddIcon from '@mui/icons-material/Add';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import EmailIcon from '@mui/icons-material/Email';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 
 const STATUS_LABELS = {
   RECIBIDA: 'Pendiente',
@@ -210,7 +207,7 @@ function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ 
                     borderRadius: 12, 
                     border: '1px solid #e2e8f0', 
