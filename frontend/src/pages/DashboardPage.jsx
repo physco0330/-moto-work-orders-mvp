@@ -10,11 +10,13 @@ import BuildIcon from '@mui/icons-material/Build';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import AddIcon from '@mui/icons-material/Add';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, activeClients: 0 });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,14 +27,32 @@ function DashboardPage() {
     setLoading(true);
     try {
       const [ordersRes, clientsRes] = await Promise.all([
-        api.get('/work-orders', { params: { pageSize: 50 } }),
+        api.get('/work-orders', { params: { pageSize: 100 } }),
         api.get('/clients')
       ]);
       
       const allOrders = ordersRes.data?.data || ordersRes.data || [];
       const allClients = clientsRes.data?.data || clientsRes.data || [];
       
+      const last7Days = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayName = date.toLocaleDateString('es', { weekday: 'short' });
+        last7Days.push({ date: dateStr, day: dayName, count: 0 });
+      }
+      
+      allOrders.forEach(order => {
+        if (order.entryDate) {
+          const orderDate = order.entryDate.split('T')[0];
+          const dayData = last7Days.find(d => d.date === orderDate);
+          if (dayData) dayData.count++;
+        }
+      });
+      
       setOrders(allOrders);
+      setChartData(last7Days);
       setStats({
         pending: allOrders.filter(o => o.status === 'RECIBIDA').length,
         inProgress: allOrders.filter(o => o.status === 'EN_PROCESO').length,
@@ -111,6 +131,31 @@ function DashboardPage() {
           </Grid>
         ))}
       </Grid>
+
+      <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Tendencia de Servicios - Últimos 7 Días
+          </Typography>
+          <Box sx={{ height: 250 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip 
+                  formatter={(value) => [value, 'Servicios']}
+                  labelFormatter={(label, payload) => payload?.[0]?.payload?.date || label}
+                />
+                <Bar dataKey="count" name="Servicios" radius={[4, 4, 0, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill="#6366f1" />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </CardContent>
+      </Card>
 
       <Card sx={{ borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
         <CardContent>
