@@ -53,7 +53,7 @@ const createWorkOrder = async (payload, user) => {
       {
         motoId: bike.id,
         entryDate: payload.entryDate || new Date(),
-        faultDescription: payload.faultDescription,
+        faultDescription: payload.faultDescription || '-',
         status: STATUS.RECIBIDA,
         total: 0,
         serviceType: payload.serviceType || null,
