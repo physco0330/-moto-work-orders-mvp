@@ -82,36 +82,7 @@ function ConfiguracionPage() {
         </div>
       </div>
 
-      {user?.role === 'ADMIN' && (
-        <div className="card">
-          <div className="card-header">
-            <h2 className="card-title">Administración de Datos</h2>
-          </div>
-          
-          <div className="form-stack" style={{ gap: 12 }}>
-            <p className="muted">Opciones solo para administradores.</p>
-            
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button 
-                className="button" 
-                onClick={handleSeed}
-                disabled={loading === 'seed'}
-                style={{ background: '#22c55e' }}
-              >
-                {loading === 'seed' ? 'Generando...' : 'Generar datos de prueba'}
-              </button>
-              
-              <button 
-                className="button danger" 
-                onClick={handleReset}
-                disabled={loading === 'reset'}
-              >
-                {loading === 'reset' ? 'Reseteando...' : 'Resetear datos'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       <div className="card">
         <div className="card-header">
