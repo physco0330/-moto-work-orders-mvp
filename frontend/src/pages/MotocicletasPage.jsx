@@ -11,6 +11,9 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
+import TableCards from '../components/TableCards';
+import PersonIcon from '@mui/icons-material/Person';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 
 function MotocicletasPage() {
   const { success, error: showError } = useToast();
