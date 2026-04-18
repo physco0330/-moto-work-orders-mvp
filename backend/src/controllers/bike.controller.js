@@ -7,8 +7,10 @@ const createBike = asyncHandler(async (req, res) => {
 });
 
 const searchBikes = asyncHandler(async (req, res) => {
-  const bikes = await bikeService.searchBikes(req.query.plate || '');
-  res.status(200).json(bikes);
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const result = await bikeService.searchBikes(req.query.plate || '', req.query.clientId, page, pageSize);
+  res.status(200).json(result);
 });
 
 const getBikeById = asyncHandler(async (req, res) => {

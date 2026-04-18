@@ -3,7 +3,7 @@ const { Client, Bike } = require('../models');
 
 const createClient = (payload) => Client.create(payload);
 
-const searchClients = async (search = '') => {
+const searchClients = async (search = '', page = 1, pageSize = 10) => {
   const where = search
     ? {
         [Op.or]: [
@@ -14,11 +14,26 @@ const searchClients = async (search = '') => {
       }
     : {};
 
-  return Client.findAll({
+  const offset = (Number(page) - 1) * Number(pageSize);
+  const limit = Number(pageSize);
+
+  const { rows, count } = await Client.findAndCountAll({
     where,
     include: [{ model: Bike, as: 'bikes' }],
     order: [['createdAt', 'DESC']],
+    offset,
+    limit,
   });
+
+  return {
+    data: rows,
+    pagination: {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      total: count,
+      totalPages: Math.ceil(count / Number(pageSize)),
+    },
+  };
 };
 
 const getClientById = async (id) => {

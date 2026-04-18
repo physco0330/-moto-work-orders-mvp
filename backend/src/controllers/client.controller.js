@@ -7,8 +7,10 @@ const createClient = asyncHandler(async (req, res) => {
 });
 
 const searchClients = asyncHandler(async (req, res) => {
-  const clients = await clientService.searchClients(req.query.search || '');
-  res.status(200).json(clients);
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const result = await clientService.searchClients(req.query.search || '', page, pageSize);
+  res.status(200).json(result);
 });
 
 const getClientById = asyncHandler(async (req, res) => {

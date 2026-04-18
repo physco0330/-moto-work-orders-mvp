@@ -22,9 +22,31 @@ const createBike = async (payload) => {
   return Bike.findByPk(bike.id, { include: [{ model: Client, as: 'client' }] });
 };
 
-const searchBikes = async (plate = '') => {
-  const where = plate ? { plate: { [Op.like]: `%${plate}%` } } : {};
-  return Bike.findAll({ where, include: [{ model: Client, as: 'client' }], order: [['createdAt', 'DESC']] });
+const searchBikes = async (plate = '', clientId = '', page = 1, pageSize = 10) => {
+  const where = {};
+  if (plate) where.plate = { [Op.like]: `%${plate}%` };
+  if (clientId) where.clientId = parseInt(clientId);
+
+  const offset = (Number(page) - 1) * Number(pageSize);
+  const limit = Number(pageSize);
+
+  const { rows, count } = await Bike.findAndCountAll({
+    where,
+    include: [{ model: Client, as: 'client' }],
+    order: [['createdAt', 'DESC']],
+    offset,
+    limit,
+  });
+
+  return {
+    data: rows,
+    pagination: {
+      page: Number(page),
+      pageSize: Number(pageSize),
+      total: count,
+      totalPages: Math.ceil(count / Number(pageSize)),
+    },
+  };
 };
 
 const getBikeById = async (id) => {
