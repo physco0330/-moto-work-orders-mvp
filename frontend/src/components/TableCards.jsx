@@ -1,17 +1,19 @@
 import React from 'react';
-import { Box, Card, CardContent, Typography, useMediaQuery, useTheme, IconButton, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Card, CardContent, Typography, useMediaQuery, useTheme, IconButton, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Select, MenuItem } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonIcon from '@mui/icons-material/Person';
+import TwoWheelerIcon from '@mui/icons-material/TwoWheeler';
 
 const TableCards = ({ 
   data = [], 
   columns = [], 
   pagination = null, 
   onPageChange,
+  onRowsPerPageChange,
   loading = false,
   onEdit,
   onDelete,
@@ -23,14 +25,14 @@ const TableCards = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const { page = 1, totalPages = 1, total = 0 } = pagination || {};
+  const { page = 1, totalPages = 1, total = 0, pageSize = 10 } = pagination || {};
 
-  const handlePrev = () => {
-    if (page > 1 && onPageChange) onPageChange(page - 1);
+  const handleChangePage = (event, newPage) => {
+    if (onPageChange) onPageChange(newPage + 1);
   };
 
-  const handleNext = () => {
-    if (page < totalPages && onPageChange) onPageChange(page + 1);
+  const handleChangeRowsPerPage = (event) => {
+    if (onRowsPerPageChange) onRowsPerPageChange(event.target.value);
   };
 
   if (isMobile) {
@@ -51,41 +53,28 @@ const TableCards = ({
               )}
               {(onEdit || onDelete || onActivate) && (
                 <Box sx={{ display: 'flex', gap: 0.5, mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'center' }}>
-                  {onEdit && (
-                    <IconButton size="small" onClick={() => onEdit(item)}>
-                      <EditIcon />
-                    </IconButton>
-                  )}
-                  {onDelete && (
-                    <IconButton size="small" onClick={() => onDelete(item)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                  {onActivate && (
-                    <IconButton size="small" onClick={() => onActivate(item)}>
-                      <CheckCircleIcon />
-                    </IconButton>
-                  )}
+                  {onEdit && <IconButton size="small" onClick={() => onEdit(item)}><EditIcon /></IconButton>}
+                  {onDelete && <IconButton size="small" onClick={() => onDelete(item)}><DeleteIcon /></IconButton>}
+                  {onActivate && <IconButton size="small" onClick={() => onActivate(item)}><CheckCircleIcon /></IconButton>}
                 </Box>
               )}
             </CardContent>
           </Card>
         ))}
         {data.length === 0 && !loading && (
-          <Typography align="center" color="text.secondary" sx={{ py: 4 }}>
-            No hay datos
-          </Typography>
+          <Typography align="center" color="text.secondary" sx={{ py: 4 }}>No hay datos</Typography>
         )}
         {pagination && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mt: 1 }}>
-            <IconButton size="small" onClick={handlePrev} disabled={page <= 1}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="body2">{page} / {totalPages}</Typography>
-            <IconButton size="small" onClick={handleNext} disabled={page >= totalPages}>
-              <ArrowForwardIcon />
-            </IconButton>
-          </Box>
+          <TablePagination
+            component="div"
+            count={total}
+            page={page - 1}
+            onPageChange={handleChangePage}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            labelRowsPerPage="Filas por página:"
+          />
         )}
       </Box>
     );
@@ -99,20 +88,16 @@ const TableCards = ({
         </Table>
       </TableContainer>
       {pagination && (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, px: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            {total} registros
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton size="small" onClick={handlePrev} disabled={page <= 1}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Chip label={`${page}/${totalPages}`} size="small" />
-            <IconButton size="small" onClick={handleNext} disabled={page >= totalPages}>
-              <ArrowForwardIcon />
-            </IconButton>
-          </Box>
-        </Box>
+        <TablePagination
+          component="div"
+          count={total}
+          page={page - 1}
+          onPageChange={handleChangePage}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+          labelRowsPerPage="Filas por página:"
+        />
       )}
     </Box>
   );

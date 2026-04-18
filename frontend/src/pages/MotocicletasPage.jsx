@@ -22,22 +22,24 @@ function MotocicletasPage() {
   const [filterPilot, setFilterPilot] = useState('');
   const [form, setForm] = useState({ brand: '', plate: '', model: '', year: '', hours: '', clientId: '' });
   const [loadingAction, setLoadingAction] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [pagination, setPagination] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [orderBy, setOrderBy] = useState('id');
-  const [order, setOrder] = useState('desc');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, [page, pageSize, filterPilot]);
 
   const loadData = async () => {
     setLoading(true);
     try {
+      const params = { page, pageSize };
+      if (filterPilot) params.clientId = filterPilot;
       const [bikesRes, clientsRes] = await Promise.all([
-        api.get('/bikes'),
+        api.get('/bikes', { params }),
         api.get('/clients')
       ]);
       setMotos(bikesRes.data.data || bikesRes.data);
+      setPagination(bikesRes.data.pagination || null);
       setPilotos(clientsRes.data.data || clientsRes.data);
     } catch (e) {
       showError('Error al cargar datos');
@@ -45,6 +47,9 @@ function MotocicletasPage() {
       setLoading(false);
     }
   };
+
+  const handlePageChange = (newPage) => setPage(newPage);
+  const handleRowsPerPageChange = (newPageSize) => { setPageSize(newPageSize); setPage(1); };
 
   const handleSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';

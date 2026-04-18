@@ -25,6 +25,7 @@ function PilotosPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [pagination, setPagination] = useState(null);
   const navigate = useNavigate();
 
@@ -48,12 +49,12 @@ function PilotosPage() {
 
   useEffect(() => {
     loadData();
-  }, [page]);
+  }, [page, pageSize]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/clients', { params: { page, pageSize: 10 } });
+      const { data } = await api.get('/clients', { params: { page, pageSize } });
       setPilotos(data.data || data);
       setPagination(data.pagination || null);
     } catch (e) {
@@ -65,6 +66,11 @@ function PilotosPage() {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPage(1);
   };
 
   const handleDelete = async () => {
@@ -139,7 +145,7 @@ function PilotosPage() {
 
       <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
         <CardContent sx={{ p: { xs: 2, md: 2 } }}>
-          <TableCards data={pilotos} pagination={pagination} onPageChange={handlePageChange} loading={loading}
+          <TableCards data={pilotos} pagination={pagination} onPageChange={handlePageChange} onRowsPerPageChange={handleRowsPerPageChange} loading={loading}
             onEdit={(p) => navigate(`/pilotos/edit/${p.id}`)} onDelete={(p) => setDeleteConfirm({ id: p.id, name: p.name })}
             renderItem={renderPilotoCard} keyField="id">
             <TableHead>
