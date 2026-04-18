@@ -13,7 +13,7 @@ const STATUS_MAP = {
   pendientes: 'RECIBIDA',
   proceso: 'EN_PROCESO',
   terminados: 'LISTA',
-  historial: 'ENTREGADA'
+  historial: ['ENTREGADA', 'LISTA']
 };
 
 const TITLE_MAP = {
@@ -47,8 +47,13 @@ function OrdersByStatusPage() {
   const loadOrders = async () => {
     setLoading(true);
     try {
-      const param = STATUS_MAP[status] ? { status: STATUS_MAP[status] } : {};
-      const { data } = await api.get('/work-orders', { params: { ...param, pageSize: 100 } });
+      let param = {};
+      if (status === 'historial') {
+        param = { status: 'LISTA,ENTREGADA', pageSize: 100 };
+      } else if (STATUS_MAP[status]) {
+        param = { status: STATUS_MAP[status], pageSize: 100 };
+      }
+      const { data } = await api.get('/work-orders', { params: param });
       setOrders(data?.data || data || []);
     } catch (e) {
       console.error('Error:', e);

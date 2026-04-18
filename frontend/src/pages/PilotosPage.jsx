@@ -19,11 +19,30 @@ function PilotosPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
+  const [errors, setErrors] = useState({});
   const [loadingAction, setLoadingAction] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [orderBy, setOrderBy] = useState('id');
   const [order, setOrder] = useState('desc');
   const navigate = useNavigate();
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = 'El nombre es requerido';
+    if (!form.phone.trim()) newErrors.phone = 'El teléfono es requerido';
+    if (!form.email.trim()) {
+      newErrors.email = 'El email es requerido';
+    } else if (!validateEmail(form.email)) {
+      newErrors.email = 'El email debe tener un formato válido (ej: ejemplo@correo.com)';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   useEffect(() => {
     loadData();
@@ -74,12 +93,13 @@ function PilotosPage() {
   };
 
   const handleCreate = async () => {
-    if (!form.name.trim() || !form.phone.trim()) return;
+    if (!validateForm()) return;
     setLoadingAction(true);
     try {
       const { data } = await api.post('/clients', form);
       setPilotos([...pilotos, data.data || data]);
       setForm({ name: '', phone: '', email: '' });
+      setErrors({});
       setShowModal(false);
       success('Piloto creado exitosamente');
     } catch (e) {
@@ -128,18 +148,17 @@ function PilotosPage() {
                       ID
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 120 }}>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 150 }}>
                     <TableSortLabel active={orderBy === 'name'} direction={orderBy === 'name' ? order : 'asc'} onClick={() => handleSort('name')}>
                       Nombre
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 120 }}>
                     <TableSortLabel active={orderBy === 'phone'} direction={orderBy === 'phone' ? order : 'asc'} onClick={() => handleSort('phone')}>
                       Teléfono
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 140 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 600, minWidth: 80 }}>Estado</TableCell>
+                  <TableCell sx={{ fontWeight: 600, minWidth: 160 }}>Email</TableCell>
                   <TableCell sx={{ fontWeight: 600, minWidth: 100 }} align="right">Acciones</TableCell>
                 </TableRow>
               </TableHead>
@@ -155,9 +174,6 @@ function PilotosPage() {
                     </TableCell>
                     <TableCell>{p.phone}</TableCell>
                     <TableCell>{p.email || '-'}</TableCell>
-                    <TableCell>
-                      <Chip label="Activo" size="small" sx={{ bgcolor: '#dcfce7', color: '#16a34a', fontSize: '0.75rem' }} />
-                    </TableCell>
                     <TableCell align="right">
                       <IconButton size="small" onClick={() => navigate(`/pilotos/edit/${p.id}`)} sx={{ '&:hover': { bgcolor: '#e0e7ff' } }}>
                         <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
@@ -170,7 +186,7 @@ function PilotosPage() {
                 ))}
                 {!pilotos.length && (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                    <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                       No hay pilotos registrados
                     </TableCell>
                   </TableRow>
@@ -191,27 +207,34 @@ function PilotosPage() {
             <TextField
               label="Nombre completo"
               value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
+              onChange={e => { setForm({ ...form, name: e.target.value }); setErrors({ ...errors, name: '' }); }}
               fullWidth
               required
               autoFocus
               size="small"
+              error={!!errors.name}
+              helperText={errors.name}
             />
             <TextField
               label="Teléfono"
               value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
+              onChange={e => { setForm({ ...form, phone: e.target.value }); setErrors({ ...errors, phone: '' }); }}
               fullWidth
               required
               size="small"
+              error={!!errors.phone}
+              helperText={errors.phone}
             />
             <TextField
-              label="Email (opcional)"
+              label="Email"
               type="email"
               value={form.email}
-              onChange={e => setForm({ ...form, email: e.target.value })}
+              onChange={e => { setForm({ ...form, email: e.target.value }); setErrors({ ...errors, email: '' }); }}
               fullWidth
+              required
               size="small"
+              error={!!errors.email}
+              helperText={errors.email}
             />
           </Box>
         </DialogContent>
@@ -220,7 +243,7 @@ function PilotosPage() {
           <Button 
             variant="contained" 
             onClick={handleCreate} 
-            disabled={loadingAction || !form.name.trim() || !form.phone.trim()}
+            disabled={loadingAction}
           >
             {loadingAction ? 'Creando...' : 'Crear Piloto'}
           </Button>

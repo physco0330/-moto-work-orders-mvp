@@ -189,7 +189,8 @@ function WorkOrderDetailPage() {
   if (error) return <div className="alert error">{error}</div>;
   if (!order) return null;
 
-  const isPendiente = order.status === 'RECIBIDA' || order.status === 'DIAGNOSTICO';
+  const isPendiente = order.status === 'RECIBIDA' || order.status === 'DIAGNOSTICO' || order.status === 'EN_PROCESO';
+  const canEditChecklist = order.status !== 'LISTA' && order.status !== 'ENTREGADA' && order.status !== 'CANCELADA';
 
   return (
     <div className="detail-layout">
@@ -250,14 +251,13 @@ function WorkOrderDetailPage() {
           <div className="checklist-grid">
             {systemItems.map((item) => {
               const checkedItem = checklistItems.find(c => c.checklistItemId === item.id);
-              const isDisabled = order?.status === 'ENTREGADA' || order?.status === 'CANCELADA';
               return (
                 <label key={item.id} className="checklist-item">
                   <input
                     type="checkbox"
                     checked={checkedItem?.checked || false}
-                    onChange={(e) => toggleChecklistItem(item.id, e.target.checked)}
-                    disabled={loadingAction === item.id || isDisabled}
+                    onChange={(e) => canEditChecklist && toggleChecklistItem(item.id, e.target.checked)}
+                    disabled={loadingAction === item.id || !canEditChecklist}
                   />
                   <span>{loadingAction === item.id ? 'Guardando...' : item.name}</span>
                 </label>
@@ -267,6 +267,11 @@ function WorkOrderDetailPage() {
               <p className="muted">No hay items de checklist configurados</p>
             )}
           </div>
+          {!canEditChecklist && (
+            <p className="muted" style={{ marginTop: 8, fontSize: '0.85rem' }}>
+              El checklist no puede modificarse en órdenes terminadas o canceladas
+            </p>
+          )}
         </div>
       )}
 
@@ -374,18 +379,23 @@ function WorkOrderDetailPage() {
                   <label key={item.id} className="checklist-item">
                     <input
                       type="checkbox"
-                      checked={!!checkedItem?.completed}
-                      onChange={() => toggleChecklistItem(item.id)}
-                      disabled={order.status === 'ENTREGADA' || order.status === 'CANCELADA'}
+                      checked={checkedItem?.checked || false}
+                      onChange={(e) => canEditChecklist && toggleChecklistItem(item.id, e.target.checked)}
+                      disabled={!canEditChecklist}
                     />
                     <span>{item.name}</span>
                   </label>
                 );
               })}
               {!systemItems.length && (
-                <p className="muted">No hay items de checklist配置ados</p>
+                <p className="muted">No hay items de checklist configurados</p>
               )}
             </div>
+            {!canEditChecklist && (
+              <p className="muted" style={{ marginTop: 8, fontSize: '0.85rem' }}>
+                El checklist no puede modificarse en órdenes terminadas o canceladas
+              </p>
+            )}
           </div>
 
           <div className="card">

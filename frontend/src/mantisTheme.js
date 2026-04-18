@@ -2,51 +2,51 @@ import { createTheme } from '@mui/material/styles';
 
 const colors = {
   primary: {
-    lighter: '#e3f2fd',
-    light: '#90caf9',
-    main: '#2196f3',
-    dark: '#1976d2',
-    darker: '#1565c0',
+    lighter: '#e8f0fe',
+    light: '#1a73e8',
+    main: '#1557b0',
+    dark: '#0d47a1',
+    darker: '#0a3b7d',
     contrastText: '#fff'
   },
   secondary: {
     lighter: '#f5f5f5',
-    light: '#bdbdbd',
-    main: '#9e9e9e',
-    dark: '#757575',
-    darker: '#616161',
+    light: '#9e9e9e',
+    main: '#616161',
+    dark: '#424242',
+    darker: '#212121',
     contrastText: '#fff'
   },
   error: {
-    lighter: '#ffebee',
-    light: '#ef9a9a',
-    main: '#f44336',
-    dark: '#d32f2f',
-    darker: '#c62828',
+    lighter: '#fdecea',
+    light: '#f28b82',
+    main: '#d93025',
+    dark: '#c5221f',
+    darker: '#a50e0c',
     contrastText: '#fff'
   },
   warning: {
-    lighter: '#fff8e1',
-    light: '#ffe082',
-    main: '#ffc107',
-    dark: '#ffa000',
-    darker: '#ff8f00',
+    lighter: '#fef7e0',
+    light: '#fdd663',
+    main: '#f9a825',
+    dark: '#f57f17',
+    darker: '#e65100',
     contrastText: '#000'
   },
   info: {
     lighter: '#e0f7fa',
-    light: '#80deea',
-    main: '#00bcd4',
-    dark: '#0097a7',
-    darker: '#00838f',
+    light: '#4dd0e1',
+    main: '#00acc1',
+    dark: '#00838f',
+    darker: '#006064',
     contrastText: '#fff'
   },
   success: {
     lighter: '#e8f5e9',
-    light: '#a5d6a7',
-    main: '#4caf50',
-    dark: '#388e3c',
-    darker: '#2e7d32',
+    light: '#81c784',
+    main: '#43a047',
+    dark: '#2e7d32',
+    darker: '#1b5e20',
     contrastText: '#fff'
   },
   grey: {

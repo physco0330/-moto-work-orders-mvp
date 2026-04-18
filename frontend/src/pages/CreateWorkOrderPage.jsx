@@ -4,6 +4,8 @@ import api from '../services/api';
 import SectionTitle from '../components/SectionTitle';
 import { useToast } from '../components/Toast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
 
 function CreateWorkOrderPage() {
   const navigate = useNavigate();
@@ -11,6 +13,7 @@ function CreateWorkOrderPage() {
   
   const [plateSearch, setPlateSearch] = useState('');
   const [bike, setBike] = useState(null);
+  const [allBikes, setAllBikes] = useState([]);
   const [client, setClient] = useState({ name: '', phone: '', email: '' });
   const [bikeData, setBikeData] = useState({ plate: '', brand: '', model: '', cylinder: '' });
   const [faultDescription, setFaultDescription] = useState('');
@@ -33,16 +36,41 @@ function CreateWorkOrderPage() {
   const loadInitial = async () => {
     setLoading(true);
     try {
-      const [clientsRes, itemsRes] = await Promise.all([
+      const [clientsRes, itemsRes, bikesRes] = await Promise.all([
         api.get('/clients'),
         api.get('/checklist-items'),
+        api.get('/bikes', { params: { pageSize: 100 } })
       ]);
       setPilotos(clientsRes.data.data || clientsRes.data);
       setSystemItems(Array.isArray(itemsRes.data) ? itemsRes.data : (itemsRes.data?.data || []));
+      setAllBikes(bikesRes.data?.data || bikesRes.data || []);
     } catch (e) {
       showError('Error al cargar datos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBikeSelect = (event, selectedBike) => {
+    if (selectedBike) {
+      setBike(selectedBike);
+      setClient({
+        name: selectedBike.client?.name || '',
+        phone: selectedBike.client?.phone || '',
+        email: selectedBike.client?.email || '',
+      });
+      setBikeData({
+        plate: selectedBike.plate || '',
+        brand: selectedBike.brand || '',
+        model: selectedBike.model || '',
+        cylinder: selectedBike.cylinder || '',
+      });
+      setHoursRegistered(selectedBike.hours || 0);
+      success(`Moto seleccionada: ${selectedBike.plate}`);
+    } else {
+      setBike(null);
+      setBikeData({ plate: '', brand: '', model: '', cylinder: '' });
+      setHoursRegistered(0);
     }
   };
 
@@ -181,19 +209,17 @@ function CreateWorkOrderPage() {
         <h3>Datos del servicio</h3>
         <div className="form-stack">
           <label>
-            Moto
-            <div className="inline-form">
-              <input 
-                value={plateSearch} 
-                onChange={(e) => setPlateSearch(e.target.value)} 
-                placeholder="Ingresa la placa"
-                style={{ flex: 1 }}
-                disabled={loading}
-              />
-              <button type="button" onClick={findBike} disabled={loading}>
-                {loading ? 'Buscando...' : 'Buscar'}
-              </button>
-            </div>
+            Moto (buscar por placa)
+            <Autocomplete
+              options={allBikes}
+              getOptionLabel={(option) => option.plate || ''}
+              onChange={handleBikeSelect}
+              renderInput={(params) => (
+                <TextField {...params} placeholder="Buscar moto por placa" size="small" />
+              )}
+              disabled={loading}
+              sx={{ marginTop: 1 }}
+            />
           </label>
           {bike && <div className="alert success">Moto encontrada: {bike.plate} - {bike.client?.name}</div>}
           
