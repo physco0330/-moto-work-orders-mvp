@@ -1,7 +1,7 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 export const generateWorkOrderPDF = (order, checklistItems, systemItems) => {
-  const doc = new jspdf.jsPDF();
+  const doc = new jsPDF();
   
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -40,10 +40,6 @@ export const generateWorkOrderPDF = (order, checklistItems, systemItems) => {
   
   const serviceType = order.serviceType || '-';
   doc.text(`SERVICIO ${serviceType}`, 20, 77);
-  
-  const hoursReg = order.hoursRegistered || 0;
-  const hoursUse = order.hoursUsed || 0;
-  doc.text(`H.REGISTRADAS ${hoursReg}  H.UTILIZADAS ${hoursUse}`, 20, 84);
 
   doc.line(20, 82, 190, 82);
   
@@ -53,11 +49,9 @@ export const generateWorkOrderPDF = (order, checklistItems, systemItems) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text('DESCRIPCIÓN DEL TRABAJO', 20, 100);
-  doc.setTextColor(150, 150, 150);
   doc.text('OBSERVACIONES', 110, 100);
   doc.text('ESTADO', 175, 100);
-  doc.setTextColor(0, 0, 0);
-  
+
   doc.line(20, 104, 190, 104);
 
   let y = 110;
@@ -66,16 +60,8 @@ export const generateWorkOrderPDF = (order, checklistItems, systemItems) => {
     const isChecked = checkedItem?.checked === true || checkedItem?.checked === 1;
     
     doc.text(item.name.substring(0, 50), 20, y);
-    
-    if (isChecked) {
-      doc.setTextColor(22, 160, 133);
-      doc.text('✓', 175, y);
-      doc.setTextColor(0, 0, 0);
-    } else {
-      doc.setTextColor(231, 76, 60);
-      doc.text('X', 175, y);
-      doc.setTextColor(0, 0, 0);
-    }
+    doc.text(isChecked ? 'SI' : 'NO', 110, y);
+    doc.text(isChecked ? '✓' : '-', 175, y);
     y += 7;
     
     if (y > 270) {
@@ -110,13 +96,7 @@ export const generateWorkOrderPDF = (order, checklistItems, systemItems) => {
   return doc;
 };
 
-export const downloadWorkOrderPDF = async (order, checklistItems, systemItems) => {
-  try {
-    const doc = generateWorkOrderPDF(order, checklistItems, systemItems);
-    doc.save(`Informe-Servicio-${order.id}.pdf`);
-    return true;
-  } catch (e) {
-    console.error('Error generating PDF:', e);
-    return false;
-  }
+export const downloadWorkOrderPDF = (order, checklistItems, systemItems) => {
+  const doc = generateWorkOrderPDF(order, checklistItems, systemItems);
+  doc.save(`Orden_${order.id}_${order.bike?.plate || 'servicio'}.pdf`);
 };
